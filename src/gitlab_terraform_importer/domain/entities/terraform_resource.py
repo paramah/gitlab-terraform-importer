@@ -151,6 +151,20 @@ class TerraformModule(BaseModel):
         """
         return len(self.get_required_variables())
 
+    def is_compatible_with_resource_type(self, resource_type: str) -> bool:
+        """Check if module contains resources of a specific type.
+
+        Args:
+            resource_type: Resource type to check for (e.g., 'gitlab_group')
+
+        Returns:
+            True if module contains resources of the specified type
+        """
+        return any(
+            resource.resource_type == resource_type
+            for resource in self.resources
+        )
+
 
 class TerraformPlan(BaseModel):
     """Terraform plan representation using Pydantic."""

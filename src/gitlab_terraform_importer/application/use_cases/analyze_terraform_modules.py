@@ -23,14 +23,16 @@ class AnalyzeTerraformModulesUseCase:
 
     def execute(
         self,
-        group_module_path: Path,
-        project_module_path: Path
+        module_paths: List[Path] = None,
+        group_module_path: Path = None,
+        project_module_path: Path = None
     ) -> Dict[str, Any]:
         """Execute the module analysis use case.
 
         Args:
-            group_module_path: Path to group module directory
-            project_module_path: Path to project module directory
+            module_paths: List of module paths to analyze (generic mode)
+            group_module_path: Path to group module directory (legacy mode)
+            project_module_path: Path to project module directory (legacy mode)
 
         Returns:
             Dictionary with analysis results
@@ -38,6 +40,65 @@ class AnalyzeTerraformModulesUseCase:
         Raises:
             FileNotFoundError: If modules not found
             ParseError: If modules cannot be parsed
+        """
+        # Support both old API (group/project specific) and new API (generic list)
+        if module_paths is not None:
+            return self._execute_generic(module_paths)
+        elif group_module_path and project_module_path:
+            return self._execute_legacy(group_module_path, project_module_path)
+        else:
+            raise ValueError("Either module_paths or both group_module_path and project_module_path must be provided")
+
+    def _execute_generic(self, module_paths: List[Path]) -> Dict[str, Any]:
+        """Execute generic module analysis for a list of modules.
+
+        Args:
+            module_paths: List of module paths to analyze
+
+        Returns:
+            Dictionary with analysis results
+        """
+        modules_analysis = []
+
+        for module_path in module_paths:
+            logger.info(f"Analyzing module: {module_path}")
+            module = self.terraform_repository.parse_module(module_path)
+
+            # Analyze variables
+            var_analysis = self.terraform_repository.analyze_module_variables(module)
+
+            # Check compatibility with GitLab resources
+            compatible_with_gitlab = (
+                module.is_compatible_with_resource_type("gitlab_group") or
+                module.is_compatible_with_resource_type("gitlab_project")
+            )
+
+            module_info = {
+                "path": module_path,
+                "module": module,
+                "analysis": var_analysis,
+                "compatible_with_gitlab": compatible_with_gitlab,
+            }
+            modules_analysis.append(module_info)
+
+        summary = {
+            "total_modules": len(modules_analysis),
+        }
+
+        return {
+            "modules": modules_analysis,
+            "summary": summary,
+        }
+
+    def _execute_legacy(self, group_module_path: Path, project_module_path: Path) -> Dict[str, Any]:
+        """Execute legacy module analysis for group and project modules.
+
+        Args:
+            group_module_path: Path to group module directory
+            project_module_path: Path to project module directory
+
+        Returns:
+            Dictionary with analysis results
         """
         logger.info(f"Analyzing group module: {group_module_path}")
         group_module = self.terraform_repository.parse_module(group_module_path)

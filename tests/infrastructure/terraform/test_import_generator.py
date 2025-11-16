@@ -176,8 +176,9 @@ class TestImportGenerator:
             output_dir=temp_dir,
         )
 
-        # Verify
-        assert len(result) == 2
+        # Verify - expects 3 files: provider.tf, groups.tf, projects.tf
+        assert len(result) == 3
+        assert (temp_dir / "provider.tf").exists()
         assert (temp_dir / "groups.tf").exists()
         assert (temp_dir / "projects.tf").exists()
 

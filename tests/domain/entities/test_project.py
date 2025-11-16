@@ -47,6 +47,7 @@ class TestProjectEntity:
             path="test",
             full_path="org/my-group.sub/my.project-name",
             namespace_id=123,
+            visibility="private",
         )
         expected = "org_my_group_sub_my_project_name"
         assert project.terraform_resource_name == expected
@@ -64,6 +65,7 @@ class TestProjectEntity:
             path="test-project",
             full_path="test-project",
             namespace_id=123,
+            visibility="private",
         )
         assert project.group_path == ""
 
@@ -75,6 +77,7 @@ class TestProjectEntity:
             path="test",
             full_path="test",
             namespace_id=123,
+            visibility="private",
             topics=None,
         )
         assert project.topics == []
@@ -88,6 +91,7 @@ class TestProjectEntity:
             path="test",
             full_path="test",
             namespace_id=123,
+            visibility="private",
             topics=topics,
         )
         assert project.topics == topics
@@ -100,6 +104,7 @@ class TestProjectEntity:
             path="test",
             full_path="test",
             namespace_id=123,
+            visibility="private",
             topics="python",
         )
         assert project.topics == ["python"]
@@ -112,6 +117,7 @@ class TestProjectEntity:
             path="test",
             full_path="test",
             namespace_id=123,
+            visibility="private",
         )
         assert project.archived is False
 
@@ -150,6 +156,7 @@ class TestProjectEntity:
             path="test",
             full_path="test",
             namespace_id=123,
+            visibility="private",
             description=None,
             web_url=None,
             default_branch=None,

@@ -64,6 +64,31 @@ class ModuleAnalyzer:
         )
         return False
 
+    def check_compatibility(
+        self,
+        module: TerraformModule,
+        expected_resource_type: str
+    ) -> bool:
+        """Check if module is compatible with a resource type (alias for validate_module_for_resource_type).
+
+        Args:
+            module: Terraform module
+            expected_resource_type: Expected resource type (e.g., 'gitlab_group')
+
+        Returns:
+            True if compatible
+        """
+        # Case-insensitive comparison
+        expected_type_lower = expected_resource_type.lower()
+        for resource in module.resources:
+            if resource.resource_type.lower() == expected_type_lower:
+                return True
+
+        logger.warning(
+            f"Module {module.name} does not contain {expected_resource_type} resources"
+        )
+        return False
+
     def get_module_resource_types(self, module: TerraformModule) -> List[str]:
         """Get all resource types used in a module.
 

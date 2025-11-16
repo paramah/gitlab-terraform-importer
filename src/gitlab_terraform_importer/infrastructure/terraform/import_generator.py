@@ -88,10 +88,11 @@ class ImportGenerator:
         output_dir.mkdir(parents=True, exist_ok=True)
         generated_files = []
 
-        # Generate provider configuration
-        provider_file = output_dir / "provider.tf"
-        self._generate_provider_file(provider_file)
-        generated_files.append(provider_file)
+        # Generate provider configuration if there are groups or projects
+        if groups or projects:
+            provider_file = output_dir / "provider.tf"
+            self._generate_provider_file(provider_file)
+            generated_files.append(provider_file)
 
         # Generate groups file
         if groups:
@@ -107,6 +108,24 @@ class ImportGenerator:
 
         logger.info(f"Generated {len(generated_files)} Terraform files")
         return generated_files
+
+    def generate_resource_configs(
+        self,
+        groups: List[Group],
+        projects: List[Project],
+        output_dir: Path
+    ) -> List[Path]:
+        """Generate Terraform resource configuration files (alias for generate_resource_files).
+
+        Args:
+            groups: List of groups
+            projects: List of projects
+            output_dir: Output directory
+
+        Returns:
+            List of generated file paths
+        """
+        return self.generate_resource_files(groups, projects, output_dir)
 
     def _generate_provider_file(self, output_file: Path) -> None:
         """Generate provider configuration file.

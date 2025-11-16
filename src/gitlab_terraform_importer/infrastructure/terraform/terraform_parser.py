@@ -134,10 +134,18 @@ class TerraformParser:
         if not isinstance(definition, dict):
             definition = {}
 
-        var_type = definition.get('type', ['string'])[0] if 'type' in definition else 'string'
-        description = definition.get('description', [None])[0] if 'description' in definition else None
-        default = definition.get('default', [None])[0] if 'default' in definition else None
-        sensitive = definition.get('sensitive', [False])[0] if 'sensitive' in definition else False
+        # Helper to extract value from HCL2 structure (which may wrap values in lists)
+        def extract_value(value, default_value=None):
+            if value is None:
+                return default_value
+            if isinstance(value, list) and len(value) > 0:
+                return value[0]
+            return value
+
+        var_type = extract_value(definition.get('type'), 'string')
+        description = extract_value(definition.get('description'), None)
+        default = extract_value(definition.get('default'), None)
+        sensitive = extract_value(definition.get('sensitive'), False)
 
         return TerraformVariable(
             name=name,
@@ -161,9 +169,17 @@ class TerraformParser:
         if not isinstance(definition, dict):
             definition = {}
 
-        value = definition.get('value', [''])[0] if 'value' in definition else ''
-        description = definition.get('description', [None])[0] if 'description' in definition else None
-        sensitive = definition.get('sensitive', [False])[0] if 'sensitive' in definition else False
+        # Helper to extract value from HCL2 structure (which may wrap values in lists)
+        def extract_value(value, default_value=None):
+            if value is None:
+                return default_value
+            if isinstance(value, list) and len(value) > 0:
+                return value[0]
+            return value
+
+        value = extract_value(definition.get('value'), '')
+        description = extract_value(definition.get('description'), None)
+        sensitive = extract_value(definition.get('sensitive'), False)
 
         return TerraformOutput(
             name=name,

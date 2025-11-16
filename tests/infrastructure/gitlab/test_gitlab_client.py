@@ -6,6 +6,7 @@ import pytest
 
 from gitlab_terraform_importer.infrastructure.gitlab import GitLabClient
 from gitlab_terraform_importer.domain.entities import Group, Project
+from gitlab_terraform_importer.config import GitLabConfig
 
 
 class TestGitLabClient:
@@ -27,19 +28,21 @@ class TestGitLabClient:
     def gitlab_client(self, mock_env):
         """Create GitLabClient instance."""
         with patch("gitlab.Gitlab"), patch("gql.Client"):
-            client = GitLabClient(
-                gitlab_url="https://gitlab.example.com",
+            config = GitLabConfig(
+                url="https://gitlab.example.com",
                 token="test-token",
             )
+            client = GitLabClient(config)
             return client
 
     def test_init(self, mock_env):
         """Test GitLabClient initialization."""
         with patch("gitlab.Gitlab") as mock_gl:
-            client = GitLabClient(
-                gitlab_url="https://gitlab.example.com",
+            config = GitLabConfig(
+                url="https://gitlab.example.com",
                 token="test-token",
             )
+            client = GitLabClient(config)
             assert client is not None
             mock_gl.assert_called_once()
 
@@ -56,7 +59,7 @@ class TestGitLabClient:
         mock_group.parent_id = None
         mock_group.web_url = "https://gitlab.example.com/org/test-group"
 
-        gitlab_client._gitlab_client.groups.get = Mock(return_value=mock_group)
+        gitlab_client.rest_client.groups.get = Mock(return_value=mock_group)
 
         # Execute
         result = gitlab_client.get_group(group_id=123)
@@ -65,7 +68,7 @@ class TestGitLabClient:
         assert isinstance(result, Group)
         assert result.id == 123
         assert result.name == "Test Group"
-        gitlab_client._gitlab_client.groups.get.assert_called_once_with(123)
+        gitlab_client.rest_client.groups.get.assert_called_once_with(123)
 
     def test_get_group_by_path(self, gitlab_client):
         """Test get_group by path."""
@@ -80,7 +83,7 @@ class TestGitLabClient:
         mock_group.parent_id = None
         mock_group.web_url = "https://gitlab.example.com/org/test-group"
 
-        gitlab_client._gitlab_client.groups.get = Mock(return_value=mock_group)
+        gitlab_client.rest_client.groups.get = Mock(return_value=mock_group)
 
         # Execute
         result = gitlab_client.get_group(group_path="org/test-group")
@@ -88,7 +91,7 @@ class TestGitLabClient:
         # Verify
         assert isinstance(result, Group)
         assert result.full_path == "org/test-group"
-        gitlab_client._gitlab_client.groups.get.assert_called_once_with("org/test-group")
+        gitlab_client.rest_client.groups.get.assert_called_once_with("org/test-group")
 
     def test_get_subgroups(self, gitlab_client):
         """Test get_subgroups."""
@@ -106,10 +109,10 @@ class TestGitLabClient:
         mock_parent = Mock()
         mock_parent.subgroups.list = Mock(return_value=[mock_subgroup])
 
-        gitlab_client._gitlab_client.groups.get = Mock(return_value=mock_parent)
+        gitlab_client.rest_client.groups.get = Mock(return_value=mock_parent)
 
         # Execute
-        result = gitlab_client.get_subgroups(parent_group_id=123)
+        result = gitlab_client.get_subgroups(group_id=123)
 
         # Verify
         assert len(result) == 1
@@ -127,15 +130,22 @@ class TestGitLabClient:
         mock_project.description = "Project description"
         mock_project.visibility = "internal"
         mock_project.namespace = {"id": 123}
+        mock_project.http_url_to_repo = "https://gitlab.example.com/org/test-group/test-project.git"
+        mock_project.ssh_url_to_repo = "git@gitlab.example.com:org/test-group/test-project.git"
         mock_project.web_url = "https://gitlab.example.com/org/test-group/test-project"
         mock_project.default_branch = "main"
         mock_project.topics = ["terraform"]
         mock_project.archived = False
+        mock_project.issues_enabled = True
+        mock_project.merge_requests_enabled = True
+        mock_project.wiki_enabled = True
+        mock_project.snippets_enabled = True
+        mock_project.container_registry_enabled = True
 
         mock_group = Mock()
         mock_group.projects.list = Mock(return_value=[mock_project])
 
-        gitlab_client._gitlab_client.groups.get = Mock(return_value=mock_group)
+        gitlab_client.rest_client.groups.get = Mock(return_value=mock_group)
 
         # Execute
         result = gitlab_client.get_group_projects(group_id=123)
@@ -156,21 +166,49 @@ class TestGitLabClient:
         mock_active_project.description = None
         mock_active_project.visibility = "private"
         mock_active_project.namespace = {"id": 123}
+        mock_active_project.http_url_to_repo = "https://gitlab.example.com/org/active.git"
+        mock_active_project.ssh_url_to_repo = "git@gitlab.example.com:org/active.git"
         mock_active_project.web_url = "https://gitlab.example.com/org/active"
         mock_active_project.default_branch = "main"
         mock_active_project.topics = []
         mock_active_project.archived = False
+        mock_active_project.issues_enabled = True
+        mock_active_project.merge_requests_enabled = True
+        mock_active_project.wiki_enabled = True
+        mock_active_project.snippets_enabled = True
+        mock_active_project.container_registry_enabled = True
 
         mock_archived_project = Mock()
-        mock_archived_project.archived = True
         mock_archived_project.id = 790
+        mock_archived_project.name = "Archived Project"
+        mock_archived_project.path = "archived"
+        mock_archived_project.path_with_namespace = "org/archived"
+        mock_archived_project.description = None
+        mock_archived_project.visibility = "private"
+        mock_archived_project.namespace = {"id": 123}
+        mock_archived_project.http_url_to_repo = "https://gitlab.example.com/org/archived.git"
+        mock_archived_project.ssh_url_to_repo = "git@gitlab.example.com:org/archived.git"
+        mock_archived_project.web_url = "https://gitlab.example.com/org/archived"
+        mock_archived_project.default_branch = "main"
+        mock_archived_project.topics = []
+        mock_archived_project.archived = True
+        mock_archived_project.issues_enabled = True
+        mock_archived_project.merge_requests_enabled = True
+        mock_archived_project.wiki_enabled = True
+        mock_archived_project.snippets_enabled = True
+        mock_archived_project.container_registry_enabled = True
 
         mock_group = Mock()
-        mock_group.projects.list = Mock(
-            return_value=[mock_active_project, mock_archived_project]
-        )
+        # Mock should only return active projects when include_archived=False
+        def mock_projects_list(**kwargs):
+            if kwargs.get('archived', True):  # If including archived or True (default)
+                return [mock_active_project, mock_archived_project]
+            else:  # If not including archived
+                return [mock_active_project]
 
-        gitlab_client._gitlab_client.groups.get = Mock(return_value=mock_group)
+        mock_group.projects.list = Mock(side_effect=mock_projects_list)
+
+        gitlab_client.rest_client.groups.get = Mock(return_value=mock_group)
 
         # Execute
         result = gitlab_client.get_group_projects(group_id=123, include_archived=False)
@@ -194,7 +232,7 @@ class TestGitLabClient:
         mock_group.subgroups.list = Mock(return_value=[])
         mock_group.projects.list = Mock(return_value=[])
 
-        gitlab_client._gitlab_client.groups.get = Mock(return_value=mock_group)
+        gitlab_client.rest_client.groups.get = Mock(return_value=mock_group)
 
         # Execute
         result = gitlab_client.import_group_hierarchy(root_group_id=123)
@@ -220,7 +258,7 @@ class TestGitLabClient:
         mock_group.subgroups.list = Mock(return_value=[])
         mock_group.projects.list = Mock(return_value=[])
 
-        gitlab_client._gitlab_client.groups.get = Mock(return_value=mock_group)
+        gitlab_client.rest_client.groups.get = Mock(return_value=mock_group)
 
         # Execute with max_depth=0 (should not recurse)
         result = gitlab_client.import_group_hierarchy(root_group_id=123, max_depth=0)

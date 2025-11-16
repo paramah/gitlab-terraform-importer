@@ -137,7 +137,9 @@ class TestImportStructure:
         mock_import_use_case_class.return_value = mock_import_use_case
 
         mock_terraform_client = Mock()
+        mock_terraform_client.map_module_to_gitlab_resources.return_value = []
         mock_terraform_client.generate_resource_configs.return_value = []
+        mock_terraform_client.generate_import_commands.return_value = ([], None)
         mock_terraform_client_class.return_value = mock_terraform_client
 
         # Create a temporary output directory
@@ -148,6 +150,11 @@ class TestImportStructure:
         )
 
         # Should succeed
+        if result.exit_code != 0:
+            print(f"Output: {result.output}")
+            if result.exception:
+                import traceback
+                traceback.print_exception(type(result.exception), result.exception, result.exception.__traceback__)
         assert result.exit_code == 0
 
     @patch("gitlab_terraform_importer.interfaces.cli.commands.GitLabClient")
@@ -195,7 +202,9 @@ class TestImportStructure:
         mock_import_use_case_class.return_value = mock_import_use_case
 
         mock_terraform_client = Mock()
+        mock_terraform_client.map_module_to_gitlab_resources.return_value = []
         mock_terraform_client.generate_resource_configs.return_value = []
+        mock_terraform_client.generate_import_commands.return_value = ([], None)
         mock_terraform_client_class.return_value = mock_terraform_client
 
         custom_output = temp_dir / "my-terraform"
@@ -205,6 +214,11 @@ class TestImportStructure:
         )
 
         # Should succeed
+        if result.exit_code != 0:
+            print(f"Output: {result.output}")
+            if result.exception:
+                import traceback
+                traceback.print_exception(type(result.exception), result.exception, result.exception.__traceback__)
         assert result.exit_code == 0
 
 
@@ -224,15 +238,38 @@ class TestAnalyzeModules:
         """Test analyze-modules command."""
         # Setup mocks
         mock_use_case = Mock()
+        # The CLI expects the old format with group_module and project_module
         mock_use_case.execute.return_value = {
-            "modules": [],
-            "summary": {"total_modules": 1},
+            "group_module": {
+                "name": "test-group-module",
+                "path": str(sample_tf_module_dir),
+                "variables": {},
+                "required_variables": [],
+                "outputs": [],
+                "resource_count": 1,
+                "compatible": True,
+            },
+            "project_module": {
+                "name": "test-project-module",
+                "path": str(sample_tf_module_dir),
+                "variables": {},
+                "required_variables": [],
+                "outputs": [],
+                "resource_count": 1,
+                "compatible": True,
+            },
         }
         mock_use_case_class.return_value = mock_use_case
 
-        result = cli_runner.invoke(cli, ["analyze-modules", str(sample_tf_module_dir)])
+        # The CLI expects two paths: group_module_path and project_module_path
+        result = cli_runner.invoke(cli, ["analyze-modules", str(sample_tf_module_dir), str(sample_tf_module_dir)])
 
         # Should succeed
+        if result.exit_code != 0:
+            print(f"Output: {result.output}")
+            if result.exception:
+                import traceback
+                traceback.print_exception(type(result.exception), result.exception, result.exception.__traceback__)
         assert result.exit_code == 0
 
 
