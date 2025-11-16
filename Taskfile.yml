@@ -44,7 +44,7 @@ tasks:
     desc: Uruchom testy z coverage
     cmds:
       - poetry run pytest tests/ -v --cov=src/gitlab_terraform_importer --cov-report=html
-      - echo "Coverage report: htmlcov/index.html"
+      - echo "Coverage report htmlcov/index.html"
 
   lint:
     desc: Sprawdź kod (ruff)
@@ -118,7 +118,7 @@ tasks:
     cmds:
       - echo "Środowisko dev gotowe"
       - echo ""
-      - echo "Dostępne komendy:"
+      - echo "Dostępne komendy"
       - echo "  task run       - Uruchom CLI"
       - echo "  task test      - Testy"
       - echo "  task lint      - Linting"
@@ -128,17 +128,17 @@ tasks:
   check:
     desc: Uruchom wszystkie sprawdzenia (lint, format-check, type-check, test)
     cmds:
-      - task: lint
-      - task: format-check
-      - task: type-check
-      - task: test
+      - task lint
+      - task format-check
+      - task type-check
+      - task test
 
   pre-commit:
     desc: Sprawdzenia przed commitem
     cmds:
-      - task: format
-      - task: lint-fix
-      - task: test
+      - task format
+      - task lint-fix
+      - task test
 
   publish:
     desc: Publikuj pakiet do PyPI
