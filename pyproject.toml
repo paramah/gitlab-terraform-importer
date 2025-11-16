@@ -1,7 +1,7 @@
 [project]
 name = "gitlab-terraform-importer"
-version = "0.1.0"
-description = ""
+version = "0.2.0"
+description = "GitLab Terraform Importer with Clean Architecture - Import GitLab structure and generate Terraform configs"
 authors = [
     {name = "Aleksander Cynarski",email = "aleksander@cynarski.pl"}
 ]
@@ -14,13 +14,16 @@ dependencies = [
     "click>=8.1.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
+    "python-hcl2>=4.3.0",
+    "python-terraform>=0.10.0",
+    "rich>=13.0.0",
 ]
 
 [tool.poetry]
 packages = [{include = "gitlab_terraform_importer", from = "src"}]
 
 [project.scripts]
-gitlab-tf-import = "gitlab_terraform_importer.cli:main"
+gitlab-tf-import = "gitlab_terraform_importer.interfaces.cli.commands:main"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
