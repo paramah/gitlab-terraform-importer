@@ -1,117 +1,119 @@
 # GitLab Terraform Importer - Clean Architecture Edition
 
-Zaawansowane narzędzie do importowania struktury grup i projektów GitLab do konfiguracji Terraform, zbudowane w oparciu o Clean Architecture. Umożliwia analizę niestandardowych modułów Terraform, parsowanie planów i automatyczne generowanie importów.
+Advanced tool for importing GitLab group and project structure into Terraform configuration, built with Clean Architecture. Enables custom Terraform module analysis, plan parsing, and automatic import generation.
 
-## 🎯 Funkcje
+**[Wersja Polska / Polish Version](README_PL.md)**
 
-- 🏗️ **Clean Architecture** - Oddzielenie warstw: Domain, Application, Infrastructure, Interface
-- 🔄 **Import struktury GitLab** - Rekurencyjne importowanie hierarchii grup i projektów
-- 🌐 **Dual API Support** - Wykorzystanie REST API i GraphQL GitLab SDK
-- 📦 **Analiza modułów Terraform** - Parsowanie i walidacja niestandardowych modułów
-- 📋 **Terraform Plan Parser** - Analiza planów Terraform (JSON format)
-- 🔍 **Module Variable Analyzer** - Szczegółowa analiza zmiennych w modułach
-- 🚀 **Auto-import Generator** - Automatyczne generowanie skryptów `terraform import`
-- ⚙️ **ENV Configuration** - Pełna konfiguracja przez zmienne środowiskowe
-- 🎨 **Rich CLI** - Kolorowy interfejs z progress barami i tree view
+## 🎯 Features
 
-## 📐 Architektura
+- 🏗️ **Clean Architecture** - Layer separation: Domain, Application, Infrastructure, Interface
+- 🔄 **GitLab Structure Import** - Recursive import of group and project hierarchies
+- 🌐 **Dual API Support** - Utilizes both REST API and GraphQL GitLab SDK
+- 📦 **Terraform Module Analysis** - Parse and validate custom modules
+- 📋 **Terraform Plan Parser** - Analyze Terraform plans (JSON format)
+- 🔍 **Module Variable Analyzer** - Detailed analysis of module variables
+- 🚀 **Auto-import Generator** - Automatic generation of `terraform import` scripts
+- ⚙️ **ENV Configuration** - Full configuration via environment variables
+- 🎨 **Rich CLI** - Colorful interface with progress bars and tree view
 
-Projekt wykorzystuje Clean Architecture z wyraźnym podziałem na warstwy:
+## 📐 Architecture
+
+The project uses Clean Architecture with clear layer separation:
 
 ```
 src/gitlab_terraform_importer/
-├── domain/                    # Warstwa domenowa (encje, interfejsy)
+├── domain/                    # Domain layer (entities, interfaces)
 │   ├── entities/             # Group, Project, TerraformResource, etc.
-│   └── repositories/         # Abstrakcje repozytoriów
-├── application/              # Warstwa aplikacji (logika biznesowa)
+│   └── repositories/         # Repository abstractions
+├── application/              # Application layer (business logic)
 │   └── use_cases/           # Use cases (Import, Analyze, Generate)
-├── infrastructure/           # Warstwa infrastruktury (implementacje)
+├── infrastructure/           # Infrastructure layer (implementations)
 │   ├── gitlab/              # GitLab client (REST + GraphQL)
 │   └── terraform/           # Terraform parser, analyzer, generator
-└── interfaces/              # Warstwa interfejsów
+└── interfaces/              # Interface layer
     └── cli/                # Click-based CLI
 ```
 
-### Główne komponenty:
+### Main Components:
 
 #### Domain Layer
 - **Entities** (Pydantic BaseModel): `Group`, `Project`, `TerraformResource`, `TerraformModule`, `TerraformPlan`, `TerraformState`
-  - Automatyczna walidacja danych
+  - Automatic data validation
   - JSON serialization/deserialization
   - Computed fields (@computed_field)
   - Field validators
 - **Repository Interfaces**: `GitLabRepository`, `TerraformRepository`
 
 #### Application Layer
-- **ImportGitLabStructureUseCase** - Import struktury z GitLab
-- **AnalyzeTerraformModulesUseCase** - Analiza modułów Terraform
-- **GenerateTerraformImportsUseCase** - Generowanie konfiguracji import
+- **ImportGitLabStructureUseCase** - Import structure from GitLab
+- **AnalyzeTerraformModulesUseCase** - Analyze Terraform modules
+- **GenerateTerraformImportsUseCase** - Generate import configuration
 
 #### Infrastructure Layer
-- **GitLabClient** - Implementacja GitLab API (REST + GraphQL)
-- **TerraformClient** - Parser, analyzer i generator Terraform
+- **GitLabClient** - GitLab API implementation (REST + GraphQL)
+- **TerraformClient** - Terraform parser, analyzer and generator
 
-## 🚀 Wymagania
+## 🚀 Requirements
 
 - Python 3.13+
-- GitLab Personal Access Token z uprawnieniami `api`
-- Terraform 1.0+ (opcjonalnie, do użycia wygenerowanych plików)
+- GitLab Personal Access Token with `api` permissions
+- Terraform 1.0+ (optional, for using generated files)
 
-## 📦 Instalacja
+## 📦 Installation
 
-### Instalacja z Poetry (zalecane)
+### Installation with Poetry (recommended)
 
 ```bash
-# Klonowanie repozytorium
+# Clone repository
 git clone <repository-url>
 cd gitlab-terraform-importer
 
-# Instalacja z Poetry
+# Install with Poetry
 poetry install
 
-# Uruchomienie CLI (bez instalacji globalnej)
+# Run CLI (without global installation)
 poetry run gitlab-importer --help
 
-# Instalacja dev dependencies
+# Install dev dependencies
 poetry install --with dev
 ```
 
-### Instalacja z pip
+### Installation with pip
 
 ```bash
-# Instalacja w trybie edytowalnym
+# Install in editable mode
 pip install -e .
 
-# Po instalacji dostępne globalnie
+# After installation, available globally
 gitlab-importer --help
 ```
 
-### Budowanie i dystrybucja
+### Building and Distribution
 
 ```bash
-# Budowanie pakietu
+# Build package
 poetry build
-# lub
+# or
 task build
 
-# Spakowane pliki znajdą się w dist/
+# Built files will be in dist/
 # - gitlab-terraform-importer-0.2.0.tar.gz
 # - gitlab_terraform_importer-0.2.0-py3-none-any.whl
 
-# Instalacja z wheel
+# Install from wheel
 pip install dist/gitlab_terraform_importer-0.2.0-py3-none-any.whl
 
-# Publikacja do PyPI (dla maintainers)
+# Publish to PyPI (for maintainers)
 poetry publish
-# lub
+# or
 task publish
 ```
 
 ### Taskfile - Task Runner (YAML)
 
-Projekt używa [Task](https://taskfile.dev/) - nowoczesnego task runnera w YAML.
+The project uses [Task](https://taskfile.dev/) - a modern task runner in YAML.
 
-#### Instalacja Task
+#### Installing Task
 
 ```bash
 # macOS
@@ -123,56 +125,56 @@ snap install task --classic
 # Windows (scoop)
 scoop install task
 
-# Lub pobierz binary:
+# Or download binary:
 # https://github.com/go-task/task/releases
 ```
 
-#### Dostępne taski
+#### Available Tasks
 
 ```bash
-task                # Lista wszystkich tasków
-task --list         # Szczegółowa lista z opisami
+task                # List all tasks
+task --list         # Detailed list with descriptions
 
 # Development
-task install        # Instalacja z Poetry
-task install-dev    # Instalacja z dev dependencies
-task dev-setup      # Kompletny setup dev environment
+task install        # Install with Poetry
+task install-dev    # Install with dev dependencies
+task dev-setup      # Complete dev environment setup
 
 # CLI
-task run            # Uruchom CLI (--help)
-task validate       # Walidacja konfiguracji
-task inspect        # Inspekcja GitLab
-task inspect-json   # Inspekcja GitLab (JSON)
-task import         # Import struktury
+task run            # Run CLI (--help)
+task validate       # Validate configuration
+task inspect        # Inspect GitLab
+task inspect-json   # Inspect GitLab (JSON)
+task import         # Import structure
 task import-dry     # Import (dry run)
 
 # Quality
-task test           # Uruchom testy
-task test-cov       # Testy z coverage
+task test           # Run tests
+task test-cov       # Tests with coverage
 task lint           # Linting (ruff)
-task lint-fix       # Napraw błędy lint
-task format         # Formatowanie (black)
-task format-check   # Sprawdź formatowanie
+task lint-fix       # Fix lint errors
+task format         # Formatting (black)
+task format-check   # Check formatting
 task type-check     # Type checking (mypy)
-task check          # Wszystkie sprawdzenia (lint+format+types+test)
-task pre-commit     # Sprawdzenia przed commitem
+task check          # All checks (lint+format+types+test)
+task pre-commit     # Pre-commit checks
 
 # Build & Deploy
-task build          # Zbuduj pakiet
-task clean          # Usuń pliki build
-task publish        # Publikuj do PyPI
-task publish-test   # Publikuj do TestPyPI
+task build          # Build package
+task clean          # Remove build files
+task publish        # Publish to PyPI
+task publish-test   # Publish to TestPyPI
 
 # Utils
-task show-deps      # Pokaż drzewo zależności
-task update         # Aktualizuj zależności
+task show-deps      # Show dependency tree
+task update         # Update dependencies
 task shell          # Poetry shell
 ```
 
-#### Przykład użycia
+#### Usage Examples
 
 ```bash
-# Setup projektu
+# Project setup
 task dev-setup
 
 # Development workflow
@@ -187,68 +189,68 @@ task pre-commit
 task build
 ```
 
-#### Przykłady z argumentami
+#### Examples with Arguments
 
 ```bash
-# Analiza modułów
+# Analyze modules
 task analyze -- ./modules/group ./modules/project
 
-# Import z modułami
+# Import with modules
 task import-modules -- ./modules/group ./modules/project --output-dir ./tf
 ```
 
-### Dostępne komendy CLI
+### Available CLI Commands
 
-Po instalacji dostępne są dwie aliasy:
-- `gitlab-importer` - główna komenda (zalecane)
+After installation, two aliases are available:
+- `gitlab-importer` - main command (recommended)
 - `gitlab-tf-import` - legacy alias (backward compatibility)
 
 ```bash
-# Metoda 1: Z Poetry (development - zalecane)
+# Method 1: With Poetry (development - recommended)
 poetry run gitlab-importer --help
 
-# Metoda 2: Skrypt dev-cli.sh (bez instalacji)
+# Method 2: dev-cli.sh script (without installation)
 ./dev-cli.sh --help
 ./dev-cli.sh validate-config
 
-# Metoda 3: Po instalacji globalnej
+# Method 3: After global installation
 gitlab-importer --help
 
 # Legacy alias
 gitlab-tf-import --help
 ```
 
-### Zależności
+### Dependencies
 
 - `python-gitlab` - GitLab REST API
 - `gql` - GitLab GraphQL API
-- `python-hcl2` - Parsowanie plików Terraform (.tf)
-- `python-terraform` - Interakcja z Terraform
-- `pydantic` & `pydantic-settings` - Konfiguracja i walidacja
+- `python-hcl2` - Terraform file parsing (.tf)
+- `python-terraform` - Terraform interaction
+- `pydantic` & `pydantic-settings` - Configuration and validation
 - `click` - CLI framework
-- `rich` - Kolorowy output
+- `rich` - Colorful output
 
-## ⚙️ Konfiguracja
+## ⚙️ Configuration
 
-### 1. Utwórz plik `.env`
+### 1. Create `.env` file
 
 ```bash
 cp .env.example .env
 ```
 
-### 2. Wypełnij zmienne środowiskowe
+### 2. Fill in environment variables
 
 ```bash
-# Wymagane
+# Required
 GITLAB_URL=https://gitlab.com
 GITLAB_TOKEN=your-personal-access-token
 
-# Wymagane (jedno z poniższych)
+# Required (one of the following)
 GITLAB_ROOT_GROUP_ID=12345
-# LUB
+# OR
 GITLAB_ROOT_GROUP_PATH=my-organization
 
-# Opcjonalne
+# Optional
 GITLAB_OUTPUT_DIR=./terraform
 GITLAB_INCLUDE_ARCHIVED=false
 GITLAB_MAX_DEPTH=5
@@ -256,94 +258,94 @@ GITLAB_TIMEOUT=60
 GITLAB_VERIFY_SSL=true
 ```
 
-## 📖 Użycie
+## 📖 Usage
 
 ### Quick Start
 
-#### Metoda 1: Z Taskfile (zalecane)
+#### Method 1: With Taskfile (recommended)
 
 ```bash
-# 1. Zainstaluj Task (jeśli nie masz)
+# 1. Install Task (if you don't have it)
 # macOS: brew install go-task/tap/go-task
 # Linux: snap install task --classic
 
 # 2. Setup dev environment
 task dev-setup
 
-# 3. Skonfiguruj .env
+# 3. Configure .env
 cp .env.example .env
-# Edytuj .env i dodaj GITLAB_TOKEN oraz GITLAB_ROOT_GROUP_PATH
+# Edit .env and add GITLAB_TOKEN and GITLAB_ROOT_GROUP_PATH
 
-# 4. Sprawdź help
+# 4. Check help
 task run
 
-# 5. Waliduj konfigurację
+# 5. Validate configuration
 task validate
 
-# 6. Przejrzyj strukturę
+# 6. Review structure
 task inspect
 
-# 7. Wygeneruj Terraform
+# 7. Generate Terraform
 task import
 ```
 
-#### Metoda 2: Bezpośrednio z Poetry
+#### Method 2: Directly with Poetry
 
 ```bash
-# 1. Zainstaluj z Poetry
+# 1. Install with Poetry
 poetry install
 
-# 2. Skonfiguruj .env
+# 2. Configure .env
 cp .env.example .env
-# Edytuj .env i dodaj GITLAB_TOKEN oraz GITLAB_ROOT_GROUP_PATH
+# Edit .env and add GITLAB_TOKEN and GITLAB_ROOT_GROUP_PATH
 
-# 3. Sprawdź help
+# 3. Check help
 poetry run gitlab-importer --help
 
-# 4. Waliduj konfigurację
+# 4. Validate configuration
 poetry run gitlab-importer validate-config
 
-# 5. Przejrzyj strukturę
+# 5. Review structure
 poetry run gitlab-importer inspect
 
-# 6. Wygeneruj Terraform
+# 6. Generate Terraform
 poetry run gitlab-importer import-structure
 ```
 
-### Lista komend
+### Command List
 
 ```bash
-gitlab-importer --help                    # Główne menu help
-gitlab-importer validate-config           # Walidacja .env
-gitlab-importer inspect                   # Podgląd struktury GitLab
-gitlab-importer import-structure          # Import i generowanie Terraform
-gitlab-importer analyze-modules           # Analiza modułów Terraform
-gitlab-importer import-with-modules       # Import z niestandardowymi modułami
+gitlab-importer --help                    # Main help menu
+gitlab-importer validate-config           # Validate .env
+gitlab-importer inspect                   # Preview GitLab structure
+gitlab-importer import-structure          # Import and generate Terraform
+gitlab-importer analyze-modules           # Analyze Terraform modules
+gitlab-importer import-with-modules       # Import with custom modules
 ```
 
-### Walidacja konfiguracji
+### Configuration Validation
 
 ```bash
 gitlab-importer validate-config
 ```
 
-### Inspekcja struktury GitLab
+### GitLab Structure Inspection
 
 ```bash
-# Widok drzewa (z rich formatting)
+# Tree view (with rich formatting)
 gitlab-importer inspect
 
-# Format JSON
+# JSON format
 gitlab-importer inspect --format json
 ```
 
-### Import i generowanie Terraform (podstawowe)
+### Import and Generate Terraform (basic)
 
 ```bash
-# Podstawowy import
+# Basic import
 gitlab-importer import-structure
 
-# Z niestandardowym katalogiem
+# With custom directory
 gitlab-importer import-structure --output-dir ./my-terraform
 
 # Dry run
@@ -353,9 +355,9 @@ gitlab-importer import-structure --dry-run
 gitlab-importer -v import-structure
 ```
 
-### Analiza modułów Terraform
+### Terraform Module Analysis
 
-Nowa funkcjonalność! Analizuj niestandardowe moduły Terraform:
+New functionality! Analyze custom Terraform modules:
 
 ```bash
 gitlab-importer analyze-modules \
@@ -384,9 +386,9 @@ Project Module:
   Compatible:        ✓
 ```
 
-### Import z niestandardowymi modułami
+### Import with Custom Modules
 
-Najważniejsza funkcjonalność! Import GitLab z wykorzystaniem Twoich modułów:
+Most important functionality! Import GitLab using your modules:
 
 ```bash
 gitlab-importer import-with-modules \
@@ -395,16 +397,16 @@ gitlab-importer import-with-modules \
   --output-dir ./terraform
 ```
 
-Ten komenda:
-1. Analizuje moduły Terraform (zmienne, outputs, resources)
-2. Importuje strukturę GitLab
-3. Mapuje dane GitLab do definicji w modułach
-4. Generuje pliki `.tf` kompatybilne z modułami
-5. Tworzy skrypt importu `import.sh`
+This command:
+1. Analyzes Terraform modules (variables, outputs, resources)
+2. Imports GitLab structure
+3. Maps GitLab data to module definitions
+4. Generates `.tf` files compatible with modules
+5. Creates import script `import.sh`
 
-## 🔧 Zaawansowane użycie
+## 🔧 Advanced Usage
 
-### Parsowanie Terraform Plan
+### Parsing Terraform Plan
 
 ```python
 from gitlab_terraform_importer import TerraformClient
@@ -412,10 +414,10 @@ from pathlib import Path
 
 client = TerraformClient()
 
-# Parsowanie planu
+# Parse plan
 plan = client.parse_plan(Path("terraform-plan.json"))
 
-# Analiza zmian
+# Analyze changes
 resources_to_create = plan.get_resources_to_create()
 resources_to_import = plan.get_resources_to_import()
 
@@ -423,14 +425,14 @@ print(f"Resources to create: {len(resources_to_create)}")
 print(f"Resources to import: {len(resources_to_import)}")
 ```
 
-### Praca z Pydantic Models
+### Working with Pydantic Models
 
-Wszystkie encje domenowe używają Pydantic BaseModel, co zapewnia:
+All domain entities use Pydantic BaseModel, which provides:
 
 ```python
 from gitlab_terraform_importer import Group, Project, TerraformModule
 
-# Tworzenie z walidacją
+# Create with validation
 group = Group(
     id=123,
     name="My Group",
@@ -439,8 +441,8 @@ group = Group(
     visibility="private"
 )
 
-# Automatyczna walidacja
-# group = Group(id="invalid")  # Błąd: id musi być int
+# Automatic validation
+# group = Group(id="invalid")  # Error: id must be int
 
 # JSON serialization
 group_json = group.model_dump_json()
@@ -452,11 +454,11 @@ group_from_dict = Group.model_validate(group_dict)
 # Computed fields
 print(group.terraform_resource_name)  # "org_my_group"
 
-# Summary bez nested obiektów
+# Summary without nested objects
 summary = group.model_dump_summary()
 ```
 
-### Programatyczne użycie
+### Programmatic Usage
 
 ```python
 from gitlab_terraform_importer import (
@@ -468,10 +470,10 @@ from gitlab_terraform_importer import (
 )
 from pathlib import Path
 
-# Konfiguracja
+# Configuration
 config = load_config()
 
-# Klienci
+# Clients
 gitlab_client = GitLabClient(config)
 terraform_client = TerraformClient()
 
@@ -485,11 +487,11 @@ root_group = import_uc.execute(
     max_depth=3
 )
 
-# Parsowanie modułów
+# Parse modules
 group_module = terraform_client.parse_module(Path("./modules/gitlab-group"))
 project_module = terraform_client.parse_module(Path("./modules/gitlab-project"))
 
-# Generowanie
+# Generate
 result = generate_uc.execute(
     gitlab_structure=root_group,
     group_module=group_module,
@@ -500,17 +502,17 @@ result = generate_uc.execute(
 print(f"Generated {result['resources_count']} resources")
 ```
 
-## 📁 Struktura wygenerowanych plików
+## 📁 Generated File Structure
 
 ```
 terraform/
-├── provider.tf          # Konfiguracja providera GitLab
-├── groups.tf           # Definicje wszystkich grup
-├── projects.tf         # Definicje wszystkich projektów
-└── import.sh           # Skrypt importu (executable)
+├── provider.tf          # GitLab provider configuration
+├── groups.tf           # All group definitions
+├── projects.tf         # All project definitions
+└── import.sh           # Import script (executable)
 ```
 
-## 🎨 Przykładowy output CLI
+## 🎨 Sample CLI Output
 
 ```
 ✓ Configuration is valid!
@@ -546,62 +548,62 @@ Next steps:
 
 ## 🧪 Use Cases
 
-### Use Case 1: Migracja istniejącej infrastruktury
+### Use Case 1: Migrating Existing Infrastructure
 
 ```bash
-# 1. Sprawdź konfigurację
+# 1. Check configuration
 gitlab-importer validate-config
 
-# 2. Przejrzyj strukturę
+# 2. Review structure
 gitlab-importer inspect
 
-# 3. Wygeneruj Terraform
+# 3. Generate Terraform
 gitlab-importer import-structure
 
-# 4. Zaimportuj do state
+# 4. Import to state
 cd terraform
 terraform init
 ./import.sh
 
-# 5. Weryfikuj
-terraform plan  # Powinno być "no changes"
+# 5. Verify
+terraform plan  # Should show "no changes"
 ```
 
-### Use Case 2: Praca z niestandardowymi modułami
+### Use Case 2: Working with Custom Modules
 
 ```bash
-# 1. Przeanalizuj moduły
+# 1. Analyze modules
 gitlab-importer analyze-modules ./modules/group ./modules/project
 
-# 2. Import z modułami
+# 2. Import with modules
 gitlab-importer import-with-modules \
   ./modules/group \
   ./modules/project
 
-# 3. Dostosuj wygenerowane pliki do modułów
+# 3. Adjust generated files to modules
 # 4. terraform import
 ```
 
-### Use Case 3: Audit struktury GitLab
+### Use Case 3: GitLab Structure Audit
 
 ```bash
-# Eksport do JSON dla dalszej analizy
+# Export to JSON for further analysis
 gitlab-importer inspect --format json > gitlab-structure.json
 
-# Analiza w jq
+# Analyze with jq
 cat gitlab-structure.json | jq '.subgroups | length'
 cat gitlab-structure.json | jq '.. | .projects? | select(. != null) | length'
 ```
 
 ## 🔍 Terraform Module Requirements
 
-Aby moduły były kompatybilne, powinny:
+For modules to be compatible, they should:
 
-1. Zawierać resource typu `gitlab_group` lub `gitlab_project`
-2. Definiować zmienne dla podstawowych atrybutów (name, path, visibility, etc.)
-3. (Opcjonalnie) Eksportować outputs (id, full_path)
+1. Contain resource of type `gitlab_group` or `gitlab_project`
+2. Define variables for basic attributes (name, path, visibility, etc.)
+3. (Optional) Export outputs (id, full_path)
 
-Przykład modułu:
+Example module:
 
 ```hcl
 # modules/gitlab-group/main.tf
@@ -630,25 +632,51 @@ output "id" {
 }
 ```
 
-## 📊 Zmienne środowiskowe
+## 📊 Environment Variables
 
-| Zmienna | Opis | Wymagana | Domyślna |
+| Variable | Description | Required | Default |
 |---------|------|----------|----------|
-| `GITLAB_URL` | URL instancji GitLab | Nie | `https://gitlab.com` |
-| `GITLAB_TOKEN` | Personal Access Token | **Tak** | - |
-| `GITLAB_ROOT_GROUP_ID` | ID grupy głównej | Tak* | - |
-| `GITLAB_ROOT_GROUP_PATH` | Ścieżka grupy głównej | Tak* | - |
-| `GITLAB_OUTPUT_DIR` | Katalog wyjściowy | Nie | `./terraform` |
-| `GITLAB_TIMEOUT` | Timeout API (s) | Nie | `60` |
-| `GITLAB_VERIFY_SSL` | Weryfikacja SSL | Nie | `true` |
-| `GITLAB_INCLUDE_ARCHIVED` | Uwzględnij archived | Nie | `false` |
-| `GITLAB_MAX_DEPTH` | Maks. głębokość | Nie | `None` |
+| `GITLAB_URL` | GitLab instance URL | No | `https://gitlab.com` |
+| `GITLAB_TOKEN` | Personal Access Token | **Yes** | - |
+| `GITLAB_ROOT_GROUP_ID` | Root group ID | Yes* | - |
+| `GITLAB_ROOT_GROUP_PATH` | Root group path | Yes* | - |
+| `GITLAB_OUTPUT_DIR` | Output directory | No | `./terraform` |
+| `GITLAB_TIMEOUT` | API timeout (s) | No | `60` |
+| `GITLAB_VERIFY_SSL` | SSL verification | No | `true` |
+| `GITLAB_INCLUDE_ARCHIVED` | Include archived | No | `false` |
+| `GITLAB_MAX_DEPTH` | Max depth | No | `None` |
 
-\* Wymagane jest podanie `GITLAB_ROOT_GROUP_ID` **lub** `GITLAB_ROOT_GROUP_PATH`
+\* Either `GITLAB_ROOT_GROUP_ID` **or** `GITLAB_ROOT_GROUP_PATH` is required
 
-## 🏗️ Rozwój
+## 🧪 Testing
 
-### Struktura projektu
+The project includes comprehensive test suite with 120+ tests:
+
+```bash
+# Run all tests
+poetry run pytest tests/ -v
+
+# Run with coverage
+poetry run pytest tests/ --cov=src/gitlab_terraform_importer --cov-report=html
+
+# Run specific test file
+poetry run pytest tests/domain/entities/test_group.py -v
+
+# With Taskfile
+task test
+task test-cov
+```
+
+### Test Coverage:
+
+- **Domain Layer**: 45+ tests (entities, validation, serialization)
+- **Application Layer**: 20+ tests (use cases, business logic)
+- **Infrastructure Layer**: 26+ tests (GitLab/Terraform clients)
+- **Interface Layer**: 12+ tests (CLI commands)
+
+## 🏗️ Development
+
+### Project Structure
 
 ```
 src/gitlab_terraform_importer/
@@ -678,16 +706,16 @@ src/gitlab_terraform_importer/
         └── commands.py
 ```
 
-### Dodawanie nowych funkcji
+### Adding New Features
 
-1. **Nowa encja**: `domain/entities/`
-2. **Nowy use case**: `application/use_cases/`
-3. **Nowa implementacja**: `infrastructure/`
-4. **Nowy komend CLI**: `interfaces/cli/commands.py`
+1. **New entity**: `domain/entities/`
+2. **New use case**: `application/use_cases/`
+3. **New implementation**: `infrastructure/`
+4. **New CLI command**: `interfaces/cli/commands.py`
 
-## 🐛 Rozwiązywanie problemów
+## 🐛 Troubleshooting
 
-### Import timeout
+### Import Timeout
 
 ```bash
 GITLAB_TIMEOUT=120 gitlab-importer import-structure
@@ -699,9 +727,9 @@ GITLAB_TIMEOUT=120 gitlab-importer import-structure
 GITLAB_VERIFY_SSL=false gitlab-importer import-structure
 ```
 
-### Module parsing errors
+### Module Parsing Errors
 
-Upewnij się, że moduły używają HCL2 syntax i są poprawnie sformatowane:
+Ensure modules use HCL2 syntax and are properly formatted:
 
 ```bash
 terraform fmt -recursive ./modules
@@ -709,22 +737,22 @@ terraform fmt -recursive ./modules
 
 ## 📝 TODO / Roadmap
 
-- [ ] Obsługa Terraform State do porównań
-- [ ] Import members i permissions grup
-- [ ] Wsparcie dla CI/CD variables
-- [ ] Export do innych formatów (Pulumi, CDK)
-- [ ] Web UI dla wizualizacji
-- [ ] Diff między GitLab a Terraform state
+- [ ] Terraform State support for comparisons
+- [ ] Import group members and permissions
+- [ ] Support for CI/CD variables
+- [ ] Export to other formats (Pulumi, CDK)
+- [ ] Web UI for visualization
+- [ ] Diff between GitLab and Terraform state
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📄 Licencja
+## 📄 License
 
-[Określ licencję]
+[Specify license]
 
-## 👤 Autor
+## 👤 Author
 
 Aleksander Cynarski <aleksander@cynarski.pl>
 
