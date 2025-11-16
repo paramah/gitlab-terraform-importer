@@ -1,0 +1,194 @@
+version: '3'
+
+vars:
+  PROJECT_NAME: gitlab-terraform-importer
+  CLI_NAME: gitlab-importer
+
+tasks:
+  default:
+    desc: Pokaż dostępne komendy
+    cmds:
+      - task --list
+
+  install:
+    desc: Zainstaluj projekt z Poetry
+    cmds:
+      - poetry install
+
+  install-dev:
+    desc: Zainstaluj projekt z dev dependencies
+    cmds:
+      - poetry install --with dev
+
+  build:
+    desc: Zbuduj pakiet
+    cmds:
+      - poetry build
+      - echo "Pakiet zbudowany w dist/"
+      - ls -lh dist/
+
+  clean:
+    desc: Usuń pliki build i cache
+    cmds:
+      - rm -rf dist/ build/ *.egg-info
+      - find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+      - find . -type f -name "*.pyc" -delete
+      - echo "Pliki build usunięte"
+
+  test:
+    desc: Uruchom testy
+    cmds:
+      - poetry run pytest tests/ -v
+
+  test-cov:
+    desc: Uruchom testy z coverage
+    cmds:
+      - poetry run pytest tests/ -v --cov=src/gitlab_terraform_importer --cov-report=html
+      - echo "Coverage report htmlcov/index.html"
+
+  lint:
+    desc: Sprawdź kod (ruff)
+    cmds:
+      - poetry run ruff check src/
+
+  lint-fix:
+    desc: Napraw automatycznie błędy lint
+    cmds:
+      - poetry run ruff check --fix src/
+
+  format:
+    desc: Formatuj kod (black)
+    cmds:
+      - poetry run black src/ tests/
+
+  format-check:
+    desc: Sprawdź formatowanie bez zmian
+    cmds:
+      - poetry run black --check src/ tests/
+
+  type-check:
+    desc: Sprawdź typy (mypy)
+    cmds:
+      - poetry run mypy src/
+
+  run:
+    desc: Uruchom CLI (help)
+    cmds:
+      - poetry run {{.CLI_NAME}} --help
+
+  validate:
+    desc: Waliduj konfigurację
+    cmds:
+      - poetry run {{.CLI_NAME}} validate-config
+
+  inspect:
+    desc: Inspekcja struktury GitLab
+    cmds:
+      - poetry run {{.CLI_NAME}} inspect
+
+  inspect-json:
+    desc: Inspekcja struktury GitLab (JSON)
+    cmds:
+      - poetry run {{.CLI_NAME}} inspect --format json
+
+  import:
+    desc: Import struktury i generowanie Terraform
+    cmds:
+      - poetry run {{.CLI_NAME}} import-structure
+
+  import-dry:
+    desc: Import struktury (dry run)
+    cmds:
+      - poetry run {{.CLI_NAME}} import-structure --dry-run
+
+  analyze:
+    desc: Analizuj moduły Terraform (wymaga argumentów)
+    cmds:
+      - poetry run {{.CLI_NAME}} analyze-modules {{.CLI_ARGS}}
+
+  import-modules:
+    desc: Import z niestandardowymi modułami (wymaga argumentów)
+    cmds:
+      - poetry run {{.CLI_NAME}} import-with-modules {{.CLI_ARGS}}
+
+  dev-setup:
+    desc: Przygotuj środowisko dev
+    deps:
+      - install-dev
+    cmds:
+      - echo "Środowisko dev gotowe"
+      - echo ""
+      - echo "Dostępne komendy"
+      - echo "  task run       - Uruchom CLI"
+      - echo "  task test      - Testy"
+      - echo "  task lint      - Linting"
+      - echo "  task format    - Formatowanie"
+      - echo "  task build     - Budowanie"
+
+  check:
+    desc: Uruchom wszystkie sprawdzenia (lint, format-check, type-check, test)
+    cmds:
+      - task lint
+      - task format-check
+      - task type-check
+      - task test
+
+  pre-commit:
+    desc: Sprawdzenia przed commitem
+    cmds:
+      - task format
+      - task lint-fix
+      - task test
+
+  publish:
+    desc: Publikuj pakiet do PyPI
+    deps:
+      - build
+    cmds:
+      - poetry publish
+
+  publish-test:
+    desc: Publikuj pakiet do TestPyPI
+    deps:
+      - build
+    cmds:
+      - poetry publish -r testpypi
+
+  shell:
+    desc: Uruchom Poetry shell
+    cmds:
+      - poetry shell
+
+  show-deps:
+    desc: Pokaż drzewo zależności
+    cmds:
+      - poetry show --tree
+
+  update:
+    desc: Aktualizuj zależności
+    cmds:
+      - poetry update
+
+  lock:
+    desc: Zaktualizuj poetry.lock
+    cmds:
+      - poetry lock --no-update
+
+  ci:
+    desc: Uruchom sprawdzenia CI lokalnie
+    cmds:
+      - echo "Uruchamianie sprawdzeń CI..."
+      - task format-check
+      - task lint
+      - task type-check
+      - task test-cov
+      - echo "Wszystkie sprawdzenia CI zakończone sukcesem!"
+
+  ci-fix:
+    desc: Napraw kod i uruchom CI
+    cmds:
+      - echo "Naprawianie kodu..."
+      - task format
+      - task lint-fix
+      - task test-cov
+      - echo "Kod naprawiony i testy zakończone!"
