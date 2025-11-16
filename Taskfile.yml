@@ -24,7 +24,7 @@ tasks:
     desc: Zbuduj pakiet
     cmds:
       - poetry build
-      - echo "📦 Pakiet zbudowany w dist/"
+      - echo "Pakiet zbudowany w dist/"
       - ls -lh dist/
 
   clean:
@@ -33,7 +33,7 @@ tasks:
       - rm -rf dist/ build/ *.egg-info
       - find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
       - find . -type f -name "*.pyc" -delete
-      - echo "✓ Pliki build usunięte"
+      - echo "Pliki build usunięte"
 
   test:
     desc: Uruchom testy
@@ -44,7 +44,7 @@ tasks:
     desc: Uruchom testy z coverage
     cmds:
       - poetry run pytest tests/ -v --cov=src/gitlab_terraform_importer --cov-report=html
-      - echo "📊 Coverage report: htmlcov/index.html"
+      - echo "Coverage report: htmlcov/index.html"
 
   lint:
     desc: Sprawdź kod (ruff)
@@ -116,7 +116,7 @@ tasks:
     deps:
       - install-dev
     cmds:
-      - echo "✓ Środowisko dev gotowe"
+      - echo "Środowisko dev gotowe"
       - echo ""
       - echo "Dostępne komendy:"
       - echo "  task run       - Uruchom CLI"
