@@ -92,7 +92,7 @@ gitlab-importer --help
 # Budowanie pakietu
 poetry build
 # lub
-make build
+task build
 
 # Spakowane pliki znajdą się w dist/
 # - gitlab-terraform-importer-0.2.0.tar.gz
@@ -103,40 +103,98 @@ pip install dist/gitlab_terraform_importer-0.2.0-py3-none-any.whl
 
 # Publikacja do PyPI (dla maintainers)
 poetry publish
+# lub
+task publish
 ```
 
-### Makefile - pomocnicze komendy
+### Taskfile - Task Runner (YAML)
 
-Projekt zawiera `Makefile` z najczęściej używanymi komendami:
+Projekt używa [Task](https://taskfile.dev/) - nowoczesnego task runnera w YAML.
+
+#### Instalacja Task
 
 ```bash
-make help          # Pokaż wszystkie dostępne komendy
-make install       # Instalacja z Poetry
-make install-dev   # Instalacja z dev dependencies
-make build         # Zbuduj pakiet
-make clean         # Usuń pliki build
-make run           # Uruchom CLI (--help)
-make validate      # Walidacja konfiguracji
-make inspect       # Inspekcja GitLab
-make import        # Import struktury
-make test          # Uruchom testy
-make lint          # Linting (ruff)
-make format        # Formatowanie (black)
+# macOS
+brew install go-task/tap/go-task
+
+# Linux (snap)
+snap install task --classic
+
+# Windows (scoop)
+scoop install task
+
+# Lub pobierz binary:
+# https://github.com/go-task/task/releases
 ```
 
-Przykład użycia:
+#### Dostępne taski
 
 ```bash
-# Setup
-make install-dev
+task                # Lista wszystkich tasków
+task --list         # Szczegółowa lista z opisami
 
 # Development
-make run
-make validate
-make inspect
+task install        # Instalacja z Poetry
+task install-dev    # Instalacja z dev dependencies
+task dev-setup      # Kompletny setup dev environment
+
+# CLI
+task run            # Uruchom CLI (--help)
+task validate       # Walidacja konfiguracji
+task inspect        # Inspekcja GitLab
+task inspect-json   # Inspekcja GitLab (JSON)
+task import         # Import struktury
+task import-dry     # Import (dry run)
+
+# Quality
+task test           # Uruchom testy
+task test-cov       # Testy z coverage
+task lint           # Linting (ruff)
+task lint-fix       # Napraw błędy lint
+task format         # Formatowanie (black)
+task format-check   # Sprawdź formatowanie
+task type-check     # Type checking (mypy)
+task check          # Wszystkie sprawdzenia (lint+format+types+test)
+task pre-commit     # Sprawdzenia przed commitem
+
+# Build & Deploy
+task build          # Zbuduj pakiet
+task clean          # Usuń pliki build
+task publish        # Publikuj do PyPI
+task publish-test   # Publikuj do TestPyPI
+
+# Utils
+task show-deps      # Pokaż drzewo zależności
+task update         # Aktualizuj zależności
+task shell          # Poetry shell
+```
+
+#### Przykład użycia
+
+```bash
+# Setup projektu
+task dev-setup
+
+# Development workflow
+task run
+task validate
+task inspect
+
+# Before commit
+task pre-commit
 
 # Build
-make build
+task build
+```
+
+#### Przykłady z argumentami
+
+```bash
+# Analiza modułów
+task analyze -- ./modules/group ./modules/project
+
+# Import z modułami
+task import-modules -- ./modules/group ./modules/project --output-dir ./tf
 ```
 
 ### Dostępne komendy CLI
@@ -201,6 +259,35 @@ GITLAB_VERIFY_SSL=true
 ## 📖 Użycie
 
 ### Quick Start
+
+#### Metoda 1: Z Taskfile (zalecane)
+
+```bash
+# 1. Zainstaluj Task (jeśli nie masz)
+# macOS: brew install go-task/tap/go-task
+# Linux: snap install task --classic
+
+# 2. Setup dev environment
+task dev-setup
+
+# 3. Skonfiguruj .env
+cp .env.example .env
+# Edytuj .env i dodaj GITLAB_TOKEN oraz GITLAB_ROOT_GROUP_PATH
+
+# 4. Sprawdź help
+task run
+
+# 5. Waliduj konfigurację
+task validate
+
+# 6. Przejrzyj strukturę
+task inspect
+
+# 7. Wygeneruj Terraform
+task import
+```
+
+#### Metoda 2: Bezpośrednio z Poetry
 
 ```bash
 # 1. Zainstaluj z Poetry
