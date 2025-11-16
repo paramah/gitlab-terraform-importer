@@ -35,7 +35,11 @@ src/gitlab_terraform_importer/
 ### Główne komponenty:
 
 #### Domain Layer
-- **Entities**: `Group`, `Project`, `TerraformResource`, `TerraformModule`, `TerraformPlan`, `TerraformState`
+- **Entities** (Pydantic BaseModel): `Group`, `Project`, `TerraformResource`, `TerraformModule`, `TerraformPlan`, `TerraformState`
+  - Automatyczna walidacja danych
+  - JSON serialization/deserialization
+  - Computed fields (@computed_field)
+  - Field validators
 - **Repository Interfaces**: `GitLabRepository`, `TerraformRepository`
 
 #### Application Layer
@@ -207,6 +211,39 @@ resources_to_import = plan.get_resources_to_import()
 
 print(f"Resources to create: {len(resources_to_create)}")
 print(f"Resources to import: {len(resources_to_import)}")
+```
+
+### Praca z Pydantic Models
+
+Wszystkie encje domenowe używają Pydantic BaseModel, co zapewnia:
+
+```python
+from gitlab_terraform_importer import Group, Project, TerraformModule
+
+# Tworzenie z walidacją
+group = Group(
+    id=123,
+    name="My Group",
+    path="my-group",
+    full_path="org/my-group",
+    visibility="private"
+)
+
+# Automatyczna walidacja
+# group = Group(id="invalid")  # Błąd: id musi być int
+
+# JSON serialization
+group_json = group.model_dump_json()
+group_dict = group.model_dump()
+
+# Deserialization
+group_from_dict = Group.model_validate(group_dict)
+
+# Computed fields
+print(group.terraform_resource_name)  # "org_my_group"
+
+# Summary bez nested obiektów
+summary = group.model_dump_summary()
 ```
 
 ### Programatyczne użycie
