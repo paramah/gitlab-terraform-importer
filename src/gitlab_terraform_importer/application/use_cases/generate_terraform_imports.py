@@ -1,10 +1,10 @@
 """Use case for generating Terraform import configuration."""
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 import logging
 
-from ...domain.entities import Group, TerraformModule, TerraformResource
+from ...domain.entities import Group, Project, TerraformModule, TerraformResource
 from ...domain.repositories import TerraformRepository
 
 logger = logging.getLogger(__name__)
@@ -120,8 +120,3 @@ class GenerateTerraformImportsUseCase:
         for subgroup in root_group.subgroups:
             projects.extend(self._collect_all_projects(subgroup))
         return projects
-
-
-# Import missing type
-from typing import Dict, Any
-from ...domain.entities import Project
