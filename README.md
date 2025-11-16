@@ -59,16 +59,105 @@ src/gitlab_terraform_importer/
 
 ## 📦 Instalacja
 
+### Instalacja z Poetry (zalecane)
+
 ```bash
 # Klonowanie repozytorium
 git clone <repository-url>
 cd gitlab-terraform-importer
 
-# Instalacja
+# Instalacja z Poetry
+poetry install
+
+# Uruchomienie CLI (bez instalacji globalnej)
+poetry run gitlab-importer --help
+
+# Instalacja dev dependencies
+poetry install --with dev
+```
+
+### Instalacja z pip
+
+```bash
+# Instalacja w trybie edytowalnym
 pip install -e .
 
-# Lub z poetry
-poetry install
+# Po instalacji dostępne globalnie
+gitlab-importer --help
+```
+
+### Budowanie i dystrybucja
+
+```bash
+# Budowanie pakietu
+poetry build
+# lub
+make build
+
+# Spakowane pliki znajdą się w dist/
+# - gitlab-terraform-importer-0.2.0.tar.gz
+# - gitlab_terraform_importer-0.2.0-py3-none-any.whl
+
+# Instalacja z wheel
+pip install dist/gitlab_terraform_importer-0.2.0-py3-none-any.whl
+
+# Publikacja do PyPI (dla maintainers)
+poetry publish
+```
+
+### Makefile - pomocnicze komendy
+
+Projekt zawiera `Makefile` z najczęściej używanymi komendami:
+
+```bash
+make help          # Pokaż wszystkie dostępne komendy
+make install       # Instalacja z Poetry
+make install-dev   # Instalacja z dev dependencies
+make build         # Zbuduj pakiet
+make clean         # Usuń pliki build
+make run           # Uruchom CLI (--help)
+make validate      # Walidacja konfiguracji
+make inspect       # Inspekcja GitLab
+make import        # Import struktury
+make test          # Uruchom testy
+make lint          # Linting (ruff)
+make format        # Formatowanie (black)
+```
+
+Przykład użycia:
+
+```bash
+# Setup
+make install-dev
+
+# Development
+make run
+make validate
+make inspect
+
+# Build
+make build
+```
+
+### Dostępne komendy CLI
+
+Po instalacji dostępne są dwie aliasy:
+- `gitlab-importer` - główna komenda (zalecane)
+- `gitlab-tf-import` - legacy alias (backward compatibility)
+
+```bash
+# Metoda 1: Z Poetry (development - zalecane)
+poetry run gitlab-importer --help
+
+# Metoda 2: Skrypt dev-cli.sh (bez instalacji)
+./dev-cli.sh --help
+./dev-cli.sh validate-config
+
+# Metoda 3: Po instalacji globalnej
+gitlab-importer --help
+
+# Legacy alias
+gitlab-tf-import --help
 ```
 
 ### Zależności
@@ -111,36 +200,70 @@ GITLAB_VERIFY_SSL=true
 
 ## 📖 Użycie
 
+### Quick Start
+
+```bash
+# 1. Zainstaluj z Poetry
+poetry install
+
+# 2. Skonfiguruj .env
+cp .env.example .env
+# Edytuj .env i dodaj GITLAB_TOKEN oraz GITLAB_ROOT_GROUP_PATH
+
+# 3. Sprawdź help
+poetry run gitlab-importer --help
+
+# 4. Waliduj konfigurację
+poetry run gitlab-importer validate-config
+
+# 5. Przejrzyj strukturę
+poetry run gitlab-importer inspect
+
+# 6. Wygeneruj Terraform
+poetry run gitlab-importer import-structure
+```
+
+### Lista komend
+
+```bash
+gitlab-importer --help                    # Główne menu help
+gitlab-importer validate-config           # Walidacja .env
+gitlab-importer inspect                   # Podgląd struktury GitLab
+gitlab-importer import-structure          # Import i generowanie Terraform
+gitlab-importer analyze-modules           # Analiza modułów Terraform
+gitlab-importer import-with-modules       # Import z niestandardowymi modułami
+```
+
 ### Walidacja konfiguracji
 
 ```bash
-gitlab-tf-import validate-config
+gitlab-importer validate-config
 ```
 
 ### Inspekcja struktury GitLab
 
 ```bash
 # Widok drzewa (z rich formatting)
-gitlab-tf-import inspect
+gitlab-importer inspect
 
 # Format JSON
-gitlab-tf-import inspect --format json
+gitlab-importer inspect --format json
 ```
 
 ### Import i generowanie Terraform (podstawowe)
 
 ```bash
 # Podstawowy import
-gitlab-tf-import import-structure
+gitlab-importer import-structure
 
 # Z niestandardowym katalogiem
-gitlab-tf-import import-structure --output-dir ./my-terraform
+gitlab-importer import-structure --output-dir ./my-terraform
 
 # Dry run
-gitlab-tf-import import-structure --dry-run
+gitlab-importer import-structure --dry-run
 
 # Verbose mode
-gitlab-tf-import -v import-structure
+gitlab-importer -v import-structure
 ```
 
 ### Analiza modułów Terraform
@@ -148,7 +271,7 @@ gitlab-tf-import -v import-structure
 Nowa funkcjonalność! Analizuj niestandardowe moduły Terraform:
 
 ```bash
-gitlab-tf-import analyze-modules \
+gitlab-importer analyze-modules \
   ./modules/gitlab-group \
   ./modules/gitlab-project
 ```
@@ -179,7 +302,7 @@ Project Module:
 Najważniejsza funkcjonalność! Import GitLab z wykorzystaniem Twoich modułów:
 
 ```bash
-gitlab-tf-import import-with-modules \
+gitlab-importer import-with-modules \
   ./modules/gitlab-group \
   ./modules/gitlab-project \
   --output-dir ./terraform
@@ -340,13 +463,13 @@ Next steps:
 
 ```bash
 # 1. Sprawdź konfigurację
-gitlab-tf-import validate-config
+gitlab-importer validate-config
 
 # 2. Przejrzyj strukturę
-gitlab-tf-import inspect
+gitlab-importer inspect
 
 # 3. Wygeneruj Terraform
-gitlab-tf-import import-structure
+gitlab-importer import-structure
 
 # 4. Zaimportuj do state
 cd terraform
@@ -361,10 +484,10 @@ terraform plan  # Powinno być "no changes"
 
 ```bash
 # 1. Przeanalizuj moduły
-gitlab-tf-import analyze-modules ./modules/group ./modules/project
+gitlab-importer analyze-modules ./modules/group ./modules/project
 
 # 2. Import z modułami
-gitlab-tf-import import-with-modules \
+gitlab-importer import-with-modules \
   ./modules/group \
   ./modules/project
 
@@ -376,7 +499,7 @@ gitlab-tf-import import-with-modules \
 
 ```bash
 # Eksport do JSON dla dalszej analizy
-gitlab-tf-import inspect --format json > gitlab-structure.json
+gitlab-importer inspect --format json > gitlab-structure.json
 
 # Analiza w jq
 cat gitlab-structure.json | jq '.subgroups | length'
@@ -480,13 +603,13 @@ src/gitlab_terraform_importer/
 ### Import timeout
 
 ```bash
-GITLAB_TIMEOUT=120 gitlab-tf-import import-structure
+GITLAB_TIMEOUT=120 gitlab-importer import-structure
 ```
 
 ### SSL Certificate Errors
 
 ```bash
-GITLAB_VERIFY_SSL=false gitlab-tf-import import-structure
+GITLAB_VERIFY_SSL=false gitlab-importer import-structure
 ```
 
 ### Module parsing errors
