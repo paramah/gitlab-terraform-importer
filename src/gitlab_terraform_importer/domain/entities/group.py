@@ -1,6 +1,7 @@
 """Domain entity for GitLab Group."""
 
-from typing import Optional, List, TYPE_CHECKING
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field, computed_field
 
 if TYPE_CHECKING:
@@ -17,11 +18,11 @@ class Group(BaseModel):
     path: str = Field(..., description="Group path")
     full_path: str = Field(..., description="Full path to group")
     visibility: str = Field(..., description="Visibility level")
-    description: Optional[str] = Field(None, description="Group description")
-    parent_id: Optional[int] = Field(None, description="Parent group ID")
-    web_url: Optional[str] = Field(None, description="Web URL to group")
-    subgroups: List["Group"] = Field(default_factory=list, description="Subgroups")
-    projects: List["Project"] = Field(default_factory=list, description="Projects in group")
+    description: str | None = Field(None, description="Group description")
+    parent_id: int | None = Field(None, description="Parent group ID")
+    web_url: str | None = Field(None, description="Web URL to group")
+    subgroups: list["Group"] = Field(default_factory=list, description="Subgroups")
+    projects: list["Project"] = Field(default_factory=list, description="Projects in group")
 
     def add_subgroup(self, subgroup: "Group") -> None:
         """Add a subgroup to this group.
@@ -69,7 +70,7 @@ class Group(BaseModel):
         Returns:
             Terraform-safe resource name
         """
-        return self.full_path.replace('/', '_').replace('-', '_').replace('.', '_')
+        return self.full_path.replace("/", "_").replace("-", "_").replace(".", "_")
 
     def get_terraform_resource_name(self) -> str:
         """Get Terraform resource name for this group (legacy method).

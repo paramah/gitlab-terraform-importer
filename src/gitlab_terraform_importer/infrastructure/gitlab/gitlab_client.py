@@ -1,14 +1,15 @@
 """GitLab client implementation (adapter)."""
 
-from typing import Optional, List, Any
 import logging
+from typing import Any
+
 import gitlab
-from gql import gql, Client
+from gql import Client
 from gql.transport.requests import RequestsHTTPTransport
 
+from ...config import GitLabConfig
 from ...domain.entities import Group, Project
 from ...domain.repositories import GitLabRepository
-from ...config import GitLabConfig
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ class GitLabClient(GitLabRepository):
             url=config.url,
             private_token=config.token,
             ssl_verify=config.verify_ssl,
-            timeout=config.timeout
+            timeout=config.timeout,
         )
         self.rest_client.auth()
         logger.info(f"Connected to GitLab: {config.url}")
@@ -49,11 +50,7 @@ class GitLabClient(GitLabRepository):
             fetch_schema_from_transport=False,
         )
 
-    def get_group(
-        self,
-        group_id: Optional[int] = None,
-        group_path: Optional[str] = None
-    ) -> Group:
+    def get_group(self, group_id: int | None = None, group_path: str | None = None) -> Group:
         """Get a group by ID or path.
 
         Args:
@@ -72,7 +69,7 @@ class GitLabClient(GitLabRepository):
 
         return self._map_group_to_entity(gl_group)
 
-    def get_subgroups(self, group_id: int, include_archived: bool = False) -> List[Group]:
+    def get_subgroups(self, group_id: int, include_archived: bool = False) -> list[Group]:
         """Get all subgroups of a group.
 
         Args:
@@ -90,11 +87,7 @@ class GitLabClient(GitLabRepository):
 
         return [self._map_group_to_entity(sg) for sg in subgroups]
 
-    def get_group_projects(
-        self,
-        group_id: int,
-        include_archived: bool = False
-    ) -> List[Project]:
+    def get_group_projects(self, group_id: int, include_archived: bool = False) -> list[Project]:
         """Get all projects in a group.
 
         Args:
@@ -127,10 +120,10 @@ class GitLabClient(GitLabRepository):
 
     def import_group_hierarchy(
         self,
-        root_group_id: Optional[int] = None,
-        root_group_path: Optional[str] = None,
-        max_depth: Optional[int] = None,
-        include_archived: bool = False
+        root_group_id: int | None = None,
+        root_group_path: str | None = None,
+        max_depth: int | None = None,
+        include_archived: bool = False,
     ) -> Group:
         """Import complete group hierarchy.
 
@@ -144,27 +137,17 @@ class GitLabClient(GitLabRepository):
             Root group with nested structure
         """
         # Get root group
-        root_group = self.get_group(
-            group_id=root_group_id,
-            group_path=root_group_path
-        )
+        root_group = self.get_group(group_id=root_group_id, group_path=root_group_path)
 
         # Import hierarchy recursively
         self._import_hierarchy_recursive(
-            root_group,
-            depth=0,
-            max_depth=max_depth,
-            include_archived=include_archived
+            root_group, depth=0, max_depth=max_depth, include_archived=include_archived
         )
 
         return root_group
 
     def _import_hierarchy_recursive(
-        self,
-        group: Group,
-        depth: int,
-        max_depth: Optional[int],
-        include_archived: bool
+        self, group: Group, depth: int, max_depth: int | None, include_archived: bool
     ) -> None:
         """Recursively import group hierarchy.
 
@@ -191,12 +174,7 @@ class GitLabClient(GitLabRepository):
         for subgroup in subgroups:
             group.add_subgroup(subgroup)
             # Recursively import subgroup
-            self._import_hierarchy_recursive(
-                subgroup,
-                depth + 1,
-                max_depth,
-                include_archived
-            )
+            self._import_hierarchy_recursive(subgroup, depth + 1, max_depth, include_archived)
         logger.debug(f"  Found {len(subgroups)} subgroups")
 
     def _map_group_to_entity(self, gl_group: Any) -> Group:
@@ -214,9 +192,9 @@ class GitLabClient(GitLabRepository):
             path=gl_group.path,
             full_path=gl_group.full_path,
             visibility=gl_group.visibility,
-            description=getattr(gl_group, 'description', None),
-            parent_id=getattr(gl_group, 'parent_id', None),
-            web_url=getattr(gl_group, 'web_url', None),
+            description=getattr(gl_group, "description", None),
+            parent_id=getattr(gl_group, "parent_id", None),
+            web_url=getattr(gl_group, "web_url", None),
         )
 
     def _map_project_to_entity(self, gl_project: Any) -> Project:
@@ -234,17 +212,17 @@ class GitLabClient(GitLabRepository):
             path=gl_project.path,
             full_path=gl_project.path_with_namespace,
             visibility=gl_project.visibility,
-            namespace_id=gl_project.namespace['id'],
-            description=getattr(gl_project, 'description', None),
-            archived=getattr(gl_project, 'archived', False),
+            namespace_id=gl_project.namespace["id"],
+            description=getattr(gl_project, "description", None),
+            archived=getattr(gl_project, "archived", False),
             http_url_to_repo=gl_project.http_url_to_repo,
             ssh_url_to_repo=gl_project.ssh_url_to_repo,
-            web_url=getattr(gl_project, 'web_url', None),
-            default_branch=getattr(gl_project, 'default_branch', None),
-            topics=getattr(gl_project, 'topics', []) or [],
-            issues_enabled=getattr(gl_project, 'issues_enabled', True),
-            merge_requests_enabled=getattr(gl_project, 'merge_requests_enabled', True),
-            wiki_enabled=getattr(gl_project, 'wiki_enabled', True),
-            snippets_enabled=getattr(gl_project, 'snippets_enabled', True),
-            container_registry_enabled=getattr(gl_project, 'container_registry_enabled', True),
+            web_url=getattr(gl_project, "web_url", None),
+            default_branch=getattr(gl_project, "default_branch", None),
+            topics=getattr(gl_project, "topics", []) or [],
+            issues_enabled=getattr(gl_project, "issues_enabled", True),
+            merge_requests_enabled=getattr(gl_project, "merge_requests_enabled", True),
+            wiki_enabled=getattr(gl_project, "wiki_enabled", True),
+            snippets_enabled=getattr(gl_project, "snippets_enabled", True),
+            container_registry_enabled=getattr(gl_project, "container_registry_enabled", True),
         )

@@ -1,7 +1,7 @@
 """GitLab repository interface (port)."""
 
 from abc import ABC, abstractmethod
-from typing import Optional, List
+
 from ..entities import Group, Project
 
 
@@ -9,7 +9,7 @@ class GitLabRepository(ABC):
     """Abstract repository for GitLab operations."""
 
     @abstractmethod
-    def get_group(self, group_id: Optional[int] = None, group_path: Optional[str] = None) -> Group:
+    def get_group(self, group_id: int | None = None, group_path: str | None = None) -> Group:
         """Get a group by ID or path.
 
         Args:
@@ -26,7 +26,7 @@ class GitLabRepository(ABC):
         pass
 
     @abstractmethod
-    def get_subgroups(self, group_id: int, include_archived: bool = False) -> List[Group]:
+    def get_subgroups(self, group_id: int, include_archived: bool = False) -> list[Group]:
         """Get all subgroups of a group.
 
         Args:
@@ -39,7 +39,7 @@ class GitLabRepository(ABC):
         pass
 
     @abstractmethod
-    def get_group_projects(self, group_id: int, include_archived: bool = False) -> List[Project]:
+    def get_group_projects(self, group_id: int, include_archived: bool = False) -> list[Project]:
         """Get all projects in a group.
 
         Args:
@@ -69,10 +69,10 @@ class GitLabRepository(ABC):
     @abstractmethod
     def import_group_hierarchy(
         self,
-        root_group_id: Optional[int] = None,
-        root_group_path: Optional[str] = None,
-        max_depth: Optional[int] = None,
-        include_archived: bool = False
+        root_group_id: int | None = None,
+        root_group_path: str | None = None,
+        max_depth: int | None = None,
+        include_archived: bool = False,
     ) -> Group:
         """Import complete group hierarchy.
 

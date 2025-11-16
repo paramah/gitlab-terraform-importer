@@ -3,13 +3,13 @@
 from .group import Group
 from .project import Project
 from .terraform_resource import (
-    TerraformResource,
+    ResourceType,
     TerraformModule,
-    TerraformVariable,
     TerraformOutput,
     TerraformPlan,
+    TerraformResource,
     TerraformState,
-    ResourceType,
+    TerraformVariable,
 )
 
 __all__ = [

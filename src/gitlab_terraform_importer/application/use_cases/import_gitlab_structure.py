@@ -1,6 +1,5 @@
 """Use case for importing GitLab structure."""
 
-from typing import Optional
 import logging
 
 from ...domain.entities import Group
@@ -22,10 +21,10 @@ class ImportGitLabStructureUseCase:
 
     def execute(
         self,
-        root_group_id: Optional[int] = None,
-        root_group_path: Optional[str] = None,
-        max_depth: Optional[int] = None,
-        include_archived: bool = False
+        root_group_id: int | None = None,
+        root_group_path: str | None = None,
+        max_depth: int | None = None,
+        include_archived: bool = False,
     ) -> Group:
         """Execute the import use case.
 
@@ -51,7 +50,7 @@ class ImportGitLabStructureUseCase:
             root_group_id=root_group_id,
             root_group_path=root_group_path,
             max_depth=max_depth,
-            include_archived=include_archived
+            include_archived=include_archived,
         )
 
         logger.info(

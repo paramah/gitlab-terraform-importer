@@ -3,14 +3,10 @@
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import pytest
 from click.testing import CliRunner
 
 from gitlab_terraform_importer.interfaces.cli.commands import (
     cli,
-    validate_config,
-    inspect,
-    import_structure,
 )
 
 
@@ -145,16 +141,17 @@ class TestImportStructure:
         # Create a temporary output directory
         output_dir = temp_dir / "terraform"
 
-        result = cli_runner.invoke(
-            cli, ["import-structure", "--output-dir", str(output_dir)]
-        )
+        result = cli_runner.invoke(cli, ["import-structure", "--output-dir", str(output_dir)])
 
         # Should succeed
         if result.exit_code != 0:
             print(f"Output: {result.output}")
             if result.exception:
                 import traceback
-                traceback.print_exception(type(result.exception), result.exception, result.exception.__traceback__)
+
+                traceback.print_exception(
+                    type(result.exception), result.exception, result.exception.__traceback__
+                )
         assert result.exit_code == 0
 
     @patch("gitlab_terraform_importer.interfaces.cli.commands.GitLabClient")
@@ -209,16 +206,17 @@ class TestImportStructure:
 
         custom_output = temp_dir / "my-terraform"
 
-        result = cli_runner.invoke(
-            cli, ["import-structure", "--output-dir", str(custom_output)]
-        )
+        result = cli_runner.invoke(cli, ["import-structure", "--output-dir", str(custom_output)])
 
         # Should succeed
         if result.exit_code != 0:
             print(f"Output: {result.output}")
             if result.exception:
                 import traceback
-                traceback.print_exception(type(result.exception), result.exception, result.exception.__traceback__)
+
+                traceback.print_exception(
+                    type(result.exception), result.exception, result.exception.__traceback__
+                )
         assert result.exit_code == 0
 
 
@@ -262,14 +260,19 @@ class TestAnalyzeModules:
         mock_use_case_class.return_value = mock_use_case
 
         # The CLI expects two paths: group_module_path and project_module_path
-        result = cli_runner.invoke(cli, ["analyze-modules", str(sample_tf_module_dir), str(sample_tf_module_dir)])
+        result = cli_runner.invoke(
+            cli, ["analyze-modules", str(sample_tf_module_dir), str(sample_tf_module_dir)]
+        )
 
         # Should succeed
         if result.exit_code != 0:
             print(f"Output: {result.output}")
             if result.exception:
                 import traceback
-                traceback.print_exception(type(result.exception), result.exception, result.exception.__traceback__)
+
+                traceback.print_exception(
+                    type(result.exception), result.exception, result.exception.__traceback__
+                )
         assert result.exit_code == 0
 
 

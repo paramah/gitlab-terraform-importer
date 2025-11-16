@@ -1,12 +1,12 @@
 """Tests for GitLabClient."""
 
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
-from gitlab_terraform_importer.infrastructure.gitlab import GitLabClient
-from gitlab_terraform_importer.domain.entities import Group, Project
 from gitlab_terraform_importer.config import GitLabConfig
+from gitlab_terraform_importer.domain.entities import Group, Project
+from gitlab_terraform_importer.infrastructure.gitlab import GitLabClient
 
 
 class TestGitLabClient:
@@ -199,9 +199,10 @@ class TestGitLabClient:
         mock_archived_project.container_registry_enabled = True
 
         mock_group = Mock()
+
         # Mock should only return active projects when include_archived=False
         def mock_projects_list(**kwargs):
-            if kwargs.get('archived', True):  # If including archived or True (default)
+            if kwargs.get("archived", True):  # If including archived or True (default)
                 return [mock_active_project, mock_archived_project]
             else:  # If not including archived
                 return [mock_active_project]

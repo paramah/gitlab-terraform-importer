@@ -34,10 +34,7 @@ class TestProjectEntity:
 
     def test_terraform_resource_name_computed(self, sample_project: Project):
         """Test terraform_resource_name computed field."""
-        assert (
-            sample_project.terraform_resource_name
-            == "org_test_group_test_project"
-        )
+        assert sample_project.terraform_resource_name == "org_test_group_test_project"
 
     def test_terraform_resource_name_special_chars(self):
         """Test terraform resource name with special characters."""
@@ -175,7 +172,6 @@ class TestProjectEntity:
     def test_legacy_methods(self, sample_project: Project):
         """Test backward compatibility methods."""
         assert (
-            sample_project.get_terraform_resource_name()
-            == sample_project.terraform_resource_name
+            sample_project.get_terraform_resource_name() == sample_project.terraform_resource_name
         )
         assert sample_project.get_group_path() == sample_project.group_path

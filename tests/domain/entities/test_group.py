@@ -51,10 +51,7 @@ class TestGroupEntity:
     def test_get_terraform_resource_name_legacy(self, sample_group: Group):
         """Test legacy get_terraform_resource_name method."""
         # Backward compatibility
-        assert (
-            sample_group.get_terraform_resource_name()
-            == sample_group.terraform_resource_name
-        )
+        assert sample_group.get_terraform_resource_name() == sample_group.terraform_resource_name
 
     def test_model_dump(self, sample_group: Group):
         """Test model serialization."""

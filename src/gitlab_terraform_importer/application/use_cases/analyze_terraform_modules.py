@@ -1,8 +1,8 @@
 """Use case for analyzing Terraform modules."""
 
-from pathlib import Path
-from typing import Dict, Any, List
 import logging
+from pathlib import Path
+from typing import Any
 
 from ...domain.entities import TerraformModule
 from ...domain.repositories import TerraformRepository
@@ -23,10 +23,10 @@ class AnalyzeTerraformModulesUseCase:
 
     def execute(
         self,
-        module_paths: List[Path] = None,
+        module_paths: list[Path] = None,
         group_module_path: Path = None,
-        project_module_path: Path = None
-    ) -> Dict[str, Any]:
+        project_module_path: Path = None,
+    ) -> dict[str, Any]:
         """Execute the module analysis use case.
 
         Args:
@@ -47,9 +47,11 @@ class AnalyzeTerraformModulesUseCase:
         elif group_module_path and project_module_path:
             return self._execute_legacy(group_module_path, project_module_path)
         else:
-            raise ValueError("Either module_paths or both group_module_path and project_module_path must be provided")
+            raise ValueError(
+                "Either module_paths or both group_module_path and project_module_path must be provided"
+            )
 
-    def _execute_generic(self, module_paths: List[Path]) -> Dict[str, Any]:
+    def _execute_generic(self, module_paths: list[Path]) -> dict[str, Any]:
         """Execute generic module analysis for a list of modules.
 
         Args:
@@ -68,10 +70,9 @@ class AnalyzeTerraformModulesUseCase:
             var_analysis = self.terraform_repository.analyze_module_variables(module)
 
             # Check compatibility with GitLab resources
-            compatible_with_gitlab = (
-                module.is_compatible_with_resource_type("gitlab_group") or
-                module.is_compatible_with_resource_type("gitlab_project")
-            )
+            compatible_with_gitlab = module.is_compatible_with_resource_type(
+                "gitlab_group"
+            ) or module.is_compatible_with_resource_type("gitlab_project")
 
             module_info = {
                 "path": module_path,
@@ -90,7 +91,7 @@ class AnalyzeTerraformModulesUseCase:
             "summary": summary,
         }
 
-    def _execute_legacy(self, group_module_path: Path, project_module_path: Path) -> Dict[str, Any]:
+    def _execute_legacy(self, group_module_path: Path, project_module_path: Path) -> dict[str, Any]:
         """Execute legacy module analysis for group and project modules.
 
         Args:
@@ -131,9 +132,7 @@ class AnalyzeTerraformModulesUseCase:
                 "source": group_module.source,
                 "version": group_module.version,
                 "variables": group_vars,
-                "required_variables": [
-                    var.name for var in group_module.get_required_variables()
-                ],
+                "required_variables": [var.name for var in group_module.get_required_variables()],
                 "outputs": list(group_module.outputs.keys()),
                 "resource_count": len(group_module.resources),
                 "compatible": group_valid,
@@ -144,9 +143,7 @@ class AnalyzeTerraformModulesUseCase:
                 "source": project_module.source,
                 "version": project_module.version,
                 "variables": project_vars,
-                "required_variables": [
-                    var.name for var in project_module.get_required_variables()
-                ],
+                "required_variables": [var.name for var in project_module.get_required_variables()],
                 "outputs": list(project_module.outputs.keys()),
                 "resource_count": len(project_module.resources),
                 "compatible": project_valid,
@@ -154,17 +151,19 @@ class AnalyzeTerraformModulesUseCase:
         }
 
         logger.info("Module analysis complete")
-        logger.info(f"Group module: {len(group_module.variables)} variables, "
-                   f"{len(group_module.resources)} resources")
-        logger.info(f"Project module: {len(project_module.variables)} variables, "
-                   f"{len(project_module.resources)} resources")
+        logger.info(
+            f"Group module: {len(group_module.variables)} variables, "
+            f"{len(group_module.resources)} resources"
+        )
+        logger.info(
+            f"Project module: {len(project_module.variables)} variables, "
+            f"{len(project_module.resources)} resources"
+        )
 
         return analysis
 
     def get_modules(
-        self,
-        group_module_path: Path,
-        project_module_path: Path
+        self, group_module_path: Path, project_module_path: Path
     ) -> tuple[TerraformModule, TerraformModule]:
         """Parse and return both modules.
 

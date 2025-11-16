@@ -9,7 +9,6 @@ from gitlab_terraform_importer.application.use_cases import (
     AnalyzeTerraformModulesUseCase,
 )
 from gitlab_terraform_importer.domain.entities import TerraformModule
-from gitlab_terraform_importer.domain.repositories import TerraformRepository
 
 
 class TestAnalyzeTerraformModulesUseCase:
@@ -18,9 +17,7 @@ class TestAnalyzeTerraformModulesUseCase:
     @pytest.fixture
     def use_case(self, mock_terraform_repository: Mock) -> AnalyzeTerraformModulesUseCase:
         """Create use case with mock repository."""
-        return AnalyzeTerraformModulesUseCase(
-            terraform_repository=mock_terraform_repository
-        )
+        return AnalyzeTerraformModulesUseCase(terraform_repository=mock_terraform_repository)
 
     def test_execute_single_module(
         self,

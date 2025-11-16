@@ -10,24 +10,18 @@ from gitlab_terraform_importer.application.use_cases import (
 )
 from gitlab_terraform_importer.domain.entities import (
     Group,
-    Project,
     TerraformModule,
     TerraformResource,
 )
-from gitlab_terraform_importer.domain.repositories import TerraformRepository
 
 
 class TestGenerateTerraformImportsUseCase:
     """Test GenerateTerraformImportsUseCase."""
 
     @pytest.fixture
-    def use_case(
-        self, mock_terraform_repository: Mock
-    ) -> GenerateTerraformImportsUseCase:
+    def use_case(self, mock_terraform_repository: Mock) -> GenerateTerraformImportsUseCase:
         """Create use case with mock repository."""
-        return GenerateTerraformImportsUseCase(
-            terraform_repository=mock_terraform_repository
-        )
+        return GenerateTerraformImportsUseCase(terraform_repository=mock_terraform_repository)
 
     @pytest.fixture
     def sample_resources(self, sample_terraform_resource: TerraformResource):
@@ -45,12 +39,8 @@ class TestGenerateTerraformImportsUseCase:
     ):
         """Test execute with basic parameters."""
         # Setup mocks
-        mock_terraform_repository.map_module_to_gitlab_resources.return_value = (
-            sample_resources
-        )
-        mock_terraform_repository.generate_resource_configs.return_value = [
-            temp_dir / "groups.tf"
-        ]
+        mock_terraform_repository.map_module_to_gitlab_resources.return_value = sample_resources
+        mock_terraform_repository.generate_resource_configs.return_value = [temp_dir / "groups.tf"]
         mock_terraform_repository.generate_import_commands.return_value = [
             "terraform import gitlab_group.test_group 123"
         ]
@@ -81,9 +71,7 @@ class TestGenerateTerraformImportsUseCase:
     ):
         """Test execute with group containing projects."""
         # Setup mocks
-        mock_terraform_repository.map_module_to_gitlab_resources.return_value = (
-            sample_resources
-        )
+        mock_terraform_repository.map_module_to_gitlab_resources.return_value = sample_resources
         mock_terraform_repository.generate_resource_configs.return_value = [
             temp_dir / "groups.tf",
             temp_dir / "projects.tf",
@@ -117,9 +105,7 @@ class TestGenerateTerraformImportsUseCase:
     ):
         """Test execute without generating import script."""
         # Setup mocks
-        mock_terraform_repository.map_module_to_gitlab_resources.return_value = (
-            sample_resources
-        )
+        mock_terraform_repository.map_module_to_gitlab_resources.return_value = sample_resources
         mock_terraform_repository.generate_resource_configs.return_value = []
 
         # Execute
@@ -147,9 +133,7 @@ class TestGenerateTerraformImportsUseCase:
     ):
         """Test execute with nested group structure."""
         # Setup mocks
-        mock_terraform_repository.map_module_to_gitlab_resources.return_value = (
-            sample_resources
-        )
+        mock_terraform_repository.map_module_to_gitlab_resources.return_value = sample_resources
         mock_terraform_repository.generate_resource_configs.return_value = []
         mock_terraform_repository.generate_import_commands.return_value = []
 
@@ -200,9 +184,7 @@ class TestGenerateTerraformImportsUseCase:
     ):
         """Test execute includes output_dir in result."""
         # Setup mocks
-        mock_terraform_repository.map_module_to_gitlab_resources.return_value = (
-            sample_resources
-        )
+        mock_terraform_repository.map_module_to_gitlab_resources.return_value = sample_resources
         mock_terraform_repository.generate_resource_configs.return_value = []
         mock_terraform_repository.generate_import_commands.return_value = []
 

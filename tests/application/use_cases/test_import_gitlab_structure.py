@@ -6,7 +6,6 @@ import pytest
 
 from gitlab_terraform_importer.application.use_cases import ImportGitLabStructureUseCase
 from gitlab_terraform_importer.domain.entities import Group
-from gitlab_terraform_importer.domain.repositories import GitLabRepository
 
 
 class TestImportGitLabStructureUseCase:
@@ -156,9 +155,7 @@ class TestImportGitLabStructureUseCase:
     ):
         """Test execute returns group with projects."""
         # Setup mock
-        mock_gitlab_repository.import_group_hierarchy.return_value = (
-            sample_group_with_projects
-        )
+        mock_gitlab_repository.import_group_hierarchy.return_value = sample_group_with_projects
 
         # Execute
         result = use_case.execute(root_group_id=123)

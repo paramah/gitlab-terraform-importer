@@ -1,25 +1,24 @@
 """CLI commands for GitLab Terraform Importer."""
 
-import logging
 import json
+import logging
 from pathlib import Path
-from typing import Optional
 
 import click
-from rich.console import Console
-from rich.tree import Tree
-from rich.progress import Progress, SpinnerColumn, TextColumn
 from dotenv import load_dotenv
+from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.tree import Tree
 
-from ...config import load_config
-from ...infrastructure.gitlab import GitLabClient
-from ...infrastructure.terraform import TerraformClient
 from ...application.use_cases import (
-    ImportGitLabStructureUseCase,
     AnalyzeTerraformModulesUseCase,
     GenerateTerraformImportsUseCase,
+    ImportGitLabStructureUseCase,
 )
+from ...config import load_config
 from ...domain.entities import Group
+from ...infrastructure.gitlab import GitLabClient
+from ...infrastructure.terraform import TerraformClient
 
 console = Console()
 logger = logging.getLogger(__name__)
@@ -34,16 +33,16 @@ def setup_logging(verbose: bool) -> None:
     level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(
         level=level,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
 
 @click.group()
-@click.option('-v', '--verbose', is_flag=True, help='Enable verbose logging')
-@click.option('--env-file', type=click.Path(exists=True), help='Path to .env file')
+@click.option("-v", "--verbose", is_flag=True, help="Enable verbose logging")
+@click.option("--env-file", type=click.Path(exists=True), help="Path to .env file")
 @click.pass_context
-def cli(ctx, verbose: bool, env_file: Optional[str]) -> None:
+def cli(ctx, verbose: bool, env_file: str | None) -> None:
     """GitLab Terraform Importer - Clean Architecture Edition.
 
     Import GitLab structure and generate Terraform configurations with
@@ -59,7 +58,7 @@ def cli(ctx, verbose: bool, env_file: Optional[str]) -> None:
 
     # Store context
     ctx.ensure_object(dict)
-    ctx.obj['verbose'] = verbose
+    ctx.obj["verbose"] = verbose
 
 
 @cli.command()
@@ -69,7 +68,7 @@ def validate_config(ctx) -> None:
     try:
         config = load_config()
         console.print("[green]✓[/green] Configuration is valid!")
-        console.print(f"\n[bold]Settings:[/bold]")
+        console.print("\n[bold]Settings:[/bold]")
         console.print(f"  GitLab URL:        {config.url}")
         console.print(f"  Token:             {'*' * 8} (set)")
         console.print(f"  Root Group ID:     {config.root_group_id or 'not set'}")
@@ -86,7 +85,7 @@ def validate_config(ctx) -> None:
 
 
 @cli.command()
-@click.option('--format', 'output_format', type=click.Choice(['tree', 'json']), default='tree')
+@click.option("--format", "output_format", type=click.Choice(["tree", "json"]), default="tree")
 @click.pass_context
 def inspect(ctx, output_format: str) -> None:
     """Inspect GitLab structure without generating files."""
@@ -101,9 +100,7 @@ def inspect(ctx, output_format: str) -> None:
 
         # Execute import
         with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
             task = progress.add_task("Importing GitLab structure...", total=None)
 
@@ -111,33 +108,33 @@ def inspect(ctx, output_format: str) -> None:
                 root_group_id=config.root_group_id,
                 root_group_path=config.root_group_path,
                 max_depth=config.max_depth,
-                include_archived=config.include_archived
+                include_archived=config.include_archived,
             )
 
             progress.update(task, completed=True)
 
         # Display results
-        if output_format == 'json':
+        if output_format == "json":
             _print_json(root_group)
         else:
             _print_tree(root_group)
 
-        console.print(f"\n[green]Summary:[/green]")
+        console.print("\n[green]Summary:[/green]")
         console.print(f"  Groups:   {root_group.count_all_groups()}")
         console.print(f"  Projects: {root_group.count_all_projects()}")
 
     except Exception as e:
         console.print(f"[red]✗[/red] Error: {e}")
-        if ctx.obj.get('verbose'):
+        if ctx.obj.get("verbose"):
             raise
         raise click.Abort()
 
 
 @cli.command()
-@click.option('--output-dir', type=click.Path(), help='Override output directory')
-@click.option('--dry-run', is_flag=True, help='Perform a dry run')
+@click.option("--output-dir", type=click.Path(), help="Override output directory")
+@click.option("--dry-run", is_flag=True, help="Perform a dry run")
 @click.pass_context
-def import_structure(ctx, output_dir: Optional[str], dry_run: bool) -> None:
+def import_structure(ctx, output_dir: str | None, dry_run: bool) -> None:
     """Import GitLab structure and generate Terraform configuration."""
     try:
         config = load_config()
@@ -154,9 +151,7 @@ def import_structure(ctx, output_dir: Optional[str], dry_run: bool) -> None:
         generate_use_case = GenerateTerraformImportsUseCase(terraform_client)
 
         with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
             # Import GitLab structure
             task1 = progress.add_task("Importing GitLab structure...", total=None)
@@ -164,11 +159,11 @@ def import_structure(ctx, output_dir: Optional[str], dry_run: bool) -> None:
                 root_group_id=config.root_group_id,
                 root_group_path=config.root_group_path,
                 max_depth=config.max_depth,
-                include_archived=config.include_archived
+                include_archived=config.include_archived,
             )
             progress.update(task1, completed=True)
 
-            console.print(f"\n[green]Discovered:[/green]")
+            console.print("\n[green]Discovered:[/green]")
             console.print(f"  Groups:   {root_group.count_all_groups()}")
             console.print(f"  Projects: {root_group.count_all_projects()}")
 
@@ -181,6 +176,7 @@ def import_structure(ctx, output_dir: Optional[str], dry_run: bool) -> None:
 
             # Create dummy modules for basic generation
             from ...domain.entities import TerraformModule
+
             group_module = TerraformModule(name="gitlab_group", source=".")
             project_module = TerraformModule(name="gitlab_project", source=".")
 
@@ -189,33 +185,33 @@ def import_structure(ctx, output_dir: Optional[str], dry_run: bool) -> None:
                 group_module=group_module,
                 project_module=project_module,
                 output_dir=Path(config.output_dir),
-                generate_import_script=True
+                generate_import_script=True,
             )
             progress.update(task2, completed=True)
 
-        console.print(f"\n[green]✓[/green] Success! Terraform files generated.")
-        console.print(f"\n[bold]Generated:[/bold]")
+        console.print("\n[green]✓[/green] Success! Terraform files generated.")
+        console.print("\n[bold]Generated:[/bold]")
         console.print(f"  Resources:     {result['resources_count']}")
         console.print(f"  Files:         {len(result['generated_files'])}")
         console.print(f"  Import Script: {result['import_script']}")
 
-        console.print(f"\n[bold]Next steps:[/bold]")
+        console.print("\n[bold]Next steps:[/bold]")
         console.print(f"  1. cd {config.output_dir}")
         console.print(f"  2. {config.terraform_binary} init")
-        console.print(f"  3. Review generated files")
-        console.print(f"  4. Run ./import.sh to import resources")
+        console.print("  3. Review generated files")
+        console.print("  4. Run ./import.sh to import resources")
         console.print(f"  5. {config.terraform_binary} plan")
 
     except Exception as e:
         console.print(f"[red]✗[/red] Error: {e}")
-        if ctx.obj.get('verbose'):
+        if ctx.obj.get("verbose"):
             raise
         raise click.Abort()
 
 
 @cli.command()
-@click.argument('group_module_path', type=click.Path(exists=True))
-@click.argument('project_module_path', type=click.Path(exists=True))
+@click.argument("group_module_path", type=click.Path(exists=True))
+@click.argument("project_module_path", type=click.Path(exists=True))
 @click.pass_context
 def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> None:
     """Analyze Terraform modules for groups and projects."""
@@ -225,15 +221,13 @@ def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> No
         analyze_use_case = AnalyzeTerraformModulesUseCase(terraform_client)
 
         with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
             task = progress.add_task("Analyzing modules...", total=None)
 
             analysis = analyze_use_case.execute(
                 group_module_path=Path(group_module_path),
-                project_module_path=Path(project_module_path)
+                project_module_path=Path(project_module_path),
             )
 
             progress.update(task, completed=True)
@@ -242,7 +236,7 @@ def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> No
 
         # Group module
         console.print("[cyan]Group Module:[/cyan]")
-        gm = analysis['group_module']
+        gm = analysis["group_module"]
         console.print(f"  Name:              {gm['name']}")
         console.print(f"  Path:              {gm['path']}")
         console.print(f"  Variables:         {len(gm['variables'])}")
@@ -251,8 +245,8 @@ def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> No
         console.print(f"  Compatible:        {'✓' if gm['compatible'] else '✗'}")
 
         # Project module
-        console.print(f"\n[cyan]Project Module:[/cyan]")
-        pm = analysis['project_module']
+        console.print("\n[cyan]Project Module:[/cyan]")
+        pm = analysis["project_module"]
         console.print(f"  Name:              {pm['name']}")
         console.print(f"  Path:              {pm['path']}")
         console.print(f"  Variables:         {len(pm['variables'])}")
@@ -260,27 +254,24 @@ def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> No
         console.print(f"  Resources:         {pm['resource_count']}")
         console.print(f"  Compatible:        {'✓' if pm['compatible'] else '✗'}")
 
-        if ctx.obj.get('verbose'):
+        if ctx.obj.get("verbose"):
             console.print("\n[bold]Detailed Analysis:[/bold]")
             console.print(json.dumps(analysis, indent=2))
 
     except Exception as e:
         console.print(f"[red]✗[/red] Error: {e}")
-        if ctx.obj.get('verbose'):
+        if ctx.obj.get("verbose"):
             raise
         raise click.Abort()
 
 
 @cli.command()
-@click.argument('group_module_path', type=click.Path(exists=True))
-@click.argument('project_module_path', type=click.Path(exists=True))
-@click.option('--output-dir', type=click.Path(), help='Override output directory')
+@click.argument("group_module_path", type=click.Path(exists=True))
+@click.argument("project_module_path", type=click.Path(exists=True))
+@click.option("--output-dir", type=click.Path(), help="Override output directory")
 @click.pass_context
 def import_with_modules(
-    ctx,
-    group_module_path: str,
-    project_module_path: str,
-    output_dir: Optional[str]
+    ctx, group_module_path: str, project_module_path: str, output_dir: str | None
 ) -> None:
     """Import GitLab structure using custom Terraform modules."""
     try:
@@ -299,15 +290,13 @@ def import_with_modules(
         generate_use_case = GenerateTerraformImportsUseCase(terraform_client)
 
         with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
             # Analyze modules
             task1 = progress.add_task("Analyzing Terraform modules...", total=None)
             group_module, project_module = analyze_use_case.get_modules(
                 group_module_path=Path(group_module_path),
-                project_module_path=Path(project_module_path)
+                project_module_path=Path(project_module_path),
             )
             progress.update(task1, completed=True)
 
@@ -317,11 +306,11 @@ def import_with_modules(
                 root_group_id=config.root_group_id,
                 root_group_path=config.root_group_path,
                 max_depth=config.max_depth,
-                include_archived=config.include_archived
+                include_archived=config.include_archived,
             )
             progress.update(task2, completed=True)
 
-            console.print(f"\n[green]Discovered:[/green]")
+            console.print("\n[green]Discovered:[/green]")
             console.print(f"  Groups:   {root_group.count_all_groups()}")
             console.print(f"  Projects: {root_group.count_all_projects()}")
 
@@ -332,30 +321,30 @@ def import_with_modules(
                 group_module=group_module,
                 project_module=project_module,
                 output_dir=Path(config.output_dir),
-                generate_import_script=True
+                generate_import_script=True,
             )
             progress.update(task3, completed=True)
 
-        console.print(f"\n[green]✓[/green] Success! Terraform imports generated.")
-        console.print(f"\n[bold]Generated:[/bold]")
+        console.print("\n[green]✓[/green] Success! Terraform imports generated.")
+        console.print("\n[bold]Generated:[/bold]")
         console.print(f"  Resources:     {result['resources_count']}")
         console.print(f"  Files:         {len(result['generated_files'])}")
         console.print(f"  Import Script: {result['import_script']}")
 
-        console.print(f"\n[bold]Next steps:[/bold]")
+        console.print("\n[bold]Next steps:[/bold]")
         console.print(f"  1. cd {config.output_dir}")
         console.print(f"  2. {config.terraform_binary} init")
-        console.print(f"  3. Run ./import.sh to import resources")
+        console.print("  3. Run ./import.sh to import resources")
         console.print(f"  4. {config.terraform_binary} plan")
 
     except Exception as e:
         console.print(f"[red]✗[/red] Error: {e}")
-        if ctx.obj.get('verbose'):
+        if ctx.obj.get("verbose"):
             raise
         raise click.Abort()
 
 
-def _print_tree(group: Group, tree: Optional[Tree] = None, is_root: bool = True) -> None:
+def _print_tree(group: Group, tree: Tree | None = None, is_root: bool = True) -> None:
     """Print group structure as a tree.
 
     Args:
@@ -384,6 +373,7 @@ def _print_json(group: Group) -> None:
     Args:
         group: Group to print
     """
+
     def group_to_dict(g: Group) -> dict:
         return {
             "id": g.id,
@@ -412,5 +402,5 @@ def main() -> None:
     cli(obj={})
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

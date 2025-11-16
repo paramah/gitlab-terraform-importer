@@ -1,14 +1,11 @@
 """Tests for Terraform entities."""
 
-import pytest
-from pathlib import Path
-from pydantic import ValidationError
 
 from gitlab_terraform_importer.domain.entities import (
-    TerraformVariable,
+    TerraformModule,
     TerraformOutput,
     TerraformResource,
-    TerraformModule,
+    TerraformVariable,
 )
 
 
@@ -99,7 +96,7 @@ class TestTerraformResource:
             depends_on=[],
             import_id="123",
         )
-        expected = 'terraform import gitlab_group.my_group 123'
+        expected = "terraform import gitlab_group.my_group 123"
         assert resource.import_command == expected
 
     def test_import_command_no_id(self):
@@ -174,8 +171,7 @@ class TestTerraformModule:
         """Test checking resource types."""
         # Check that module has gitlab_group resources
         has_gitlab_group = any(
-            r.resource_type == "gitlab_group"
-            for r in sample_terraform_module.resources
+            r.resource_type == "gitlab_group" for r in sample_terraform_module.resources
         )
         assert has_gitlab_group
 
@@ -183,26 +179,21 @@ class TestTerraformModule:
         """Test checking for specific resource types."""
         # Check gitlab_group exists
         has_gitlab_group = any(
-            r.resource_type == "gitlab_group"
-            for r in sample_terraform_module.resources
+            r.resource_type == "gitlab_group" for r in sample_terraform_module.resources
         )
         assert has_gitlab_group is True
 
         # Check gitlab_project doesn't exist
         has_gitlab_project = any(
-            r.resource_type == "gitlab_project"
-            for r in sample_terraform_module.resources
+            r.resource_type == "gitlab_project" for r in sample_terraform_module.resources
         )
         assert has_gitlab_project is False
 
-    def test_is_compatible_with_gitlab_groups(
-        self, sample_terraform_module: TerraformModule
-    ):
+    def test_is_compatible_with_gitlab_groups(self, sample_terraform_module: TerraformModule):
         """Test checking compatibility with gitlab_groups."""
         # Module has gitlab_group resource type
         has_gitlab_group = any(
-            r.resource_type == "gitlab_group"
-            for r in sample_terraform_module.resources
+            r.resource_type == "gitlab_group" for r in sample_terraform_module.resources
         )
         assert has_gitlab_group is True
 
@@ -222,10 +213,7 @@ class TestTerraformModule:
                 )
             ],
         )
-        has_gitlab_project = any(
-            r.resource_type == "gitlab_project"
-            for r in module.resources
-        )
+        has_gitlab_project = any(r.resource_type == "gitlab_project" for r in module.resources)
         assert has_gitlab_project is True
 
     def test_module_not_compatible(self):
@@ -244,14 +232,8 @@ class TestTerraformModule:
                 )
             ],
         )
-        has_gitlab_group = any(
-            r.resource_type == "gitlab_group"
-            for r in module.resources
-        )
-        has_gitlab_project = any(
-            r.resource_type == "gitlab_project"
-            for r in module.resources
-        )
+        has_gitlab_group = any(r.resource_type == "gitlab_group" for r in module.resources)
+        has_gitlab_project = any(r.resource_type == "gitlab_project" for r in module.resources)
         assert has_gitlab_group is False
         assert has_gitlab_project is False
 

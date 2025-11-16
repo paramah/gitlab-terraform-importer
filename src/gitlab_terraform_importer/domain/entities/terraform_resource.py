@@ -1,7 +1,8 @@
 """Domain entities for Terraform resources."""
 
-from typing import Dict, Any, List, Optional
 from enum import Enum
+from typing import Any
+
 from pydantic import BaseModel, Field, computed_field
 
 
@@ -20,7 +21,7 @@ class TerraformVariable(BaseModel):
 
     name: str = Field(..., description="Variable name")
     type: str = Field(..., description="Variable type")
-    description: Optional[str] = Field(None, description="Variable description")
+    description: str | None = Field(None, description="Variable description")
     default: Any = Field(None, description="Default value")
     required: bool = Field(default=True, description="Is variable required")
     sensitive: bool = Field(default=False, description="Is variable sensitive")
@@ -31,7 +32,7 @@ class TerraformOutput(BaseModel):
 
     name: str = Field(..., description="Output name")
     value: str = Field(..., description="Output value expression")
-    description: Optional[str] = Field(None, description="Output description")
+    description: str | None = Field(None, description="Output description")
     sensitive: bool = Field(default=False, description="Is output sensitive")
 
 
@@ -42,9 +43,9 @@ class TerraformResource(BaseModel):
 
     resource_type: str = Field(..., description="Resource type (e.g., 'gitlab_group')")
     resource_name: str = Field(..., description="Resource name")
-    attributes: Dict[str, Any] = Field(default_factory=dict, description="Resource attributes")
-    depends_on: List[str] = Field(default_factory=list, description="Dependencies")
-    import_id: Optional[str] = Field(None, description="ID for terraform import")
+    attributes: dict[str, Any] = Field(default_factory=dict, description="Resource attributes")
+    depends_on: list[str] = Field(default_factory=list, description="Dependencies")
+    import_id: str | None = Field(None, description="ID for terraform import")
 
     @computed_field
     @property
@@ -58,7 +59,7 @@ class TerraformResource(BaseModel):
 
     @computed_field
     @property
-    def import_command(self) -> Optional[str]:
+    def import_command(self) -> str | None:
         """Get Terraform import command.
 
         Returns:
@@ -76,7 +77,7 @@ class TerraformResource(BaseModel):
         """
         return self.resource_address
 
-    def get_import_command(self) -> Optional[str]:
+    def get_import_command(self) -> str | None:
         """Get Terraform import command (legacy method).
 
         Returns:
@@ -92,19 +93,12 @@ class TerraformModule(BaseModel):
 
     name: str = Field(..., description="Module name")
     source: str = Field(..., description="Module source path")
-    version: Optional[str] = Field(None, description="Module version")
-    variables: Dict[str, TerraformVariable] = Field(
-        default_factory=dict,
-        description="Module variables"
+    version: str | None = Field(None, description="Module version")
+    variables: dict[str, TerraformVariable] = Field(
+        default_factory=dict, description="Module variables"
     )
-    outputs: Dict[str, TerraformOutput] = Field(
-        default_factory=dict,
-        description="Module outputs"
-    )
-    resources: List[TerraformResource] = Field(
-        default_factory=list,
-        description="Module resources"
-    )
+    outputs: dict[str, TerraformOutput] = Field(default_factory=dict, description="Module outputs")
+    resources: list[TerraformResource] = Field(default_factory=list, description="Module resources")
 
     def add_variable(self, variable: TerraformVariable) -> None:
         """Add a variable to the module.
@@ -130,16 +124,13 @@ class TerraformModule(BaseModel):
         """
         self.resources.append(resource)
 
-    def get_required_variables(self) -> List[TerraformVariable]:
+    def get_required_variables(self) -> list[TerraformVariable]:
         """Get list of required variables.
 
         Returns:
             List of required variables
         """
-        return [
-            var for var in self.variables.values()
-            if var.required and var.default is None
-        ]
+        return [var for var in self.variables.values() if var.required and var.default is None]
 
     @computed_field
     @property
@@ -160,10 +151,7 @@ class TerraformModule(BaseModel):
         Returns:
             True if module contains resources of the specified type
         """
-        return any(
-            resource.resource_type == resource_type
-            for resource in self.resources
-        )
+        return any(resource.resource_type == resource_type for resource in self.resources)
 
 
 class TerraformPlan(BaseModel):
@@ -173,39 +161,34 @@ class TerraformPlan(BaseModel):
 
     format_version: str = Field(..., description="Plan format version")
     terraform_version: str = Field(..., description="Terraform version")
-    planned_values: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Planned values"
+    planned_values: dict[str, Any] = Field(default_factory=dict, description="Planned values")
+    resource_changes: list[dict[str, Any]] = Field(
+        default_factory=list, description="Resource changes"
     )
-    resource_changes: List[Dict[str, Any]] = Field(
-        default_factory=list,
-        description="Resource changes"
-    )
-    configuration: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Configuration"
-    )
+    configuration: dict[str, Any] = Field(default_factory=dict, description="Configuration")
 
-    def get_resources_to_create(self) -> List[Dict[str, Any]]:
+    def get_resources_to_create(self) -> list[dict[str, Any]]:
         """Get resources that will be created.
 
         Returns:
             List of resources to create
         """
         return [
-            change for change in self.resource_changes
-            if change.get('change', {}).get('actions') == ['create']
+            change
+            for change in self.resource_changes
+            if change.get("change", {}).get("actions") == ["create"]
         ]
 
-    def get_resources_to_import(self) -> List[Dict[str, Any]]:
+    def get_resources_to_import(self) -> list[dict[str, Any]]:
         """Get resources that need to be imported.
 
         Returns:
             List of resources to import
         """
         return [
-            change for change in self.resource_changes
-            if 'import' in change.get('change', {}).get('actions', [])
+            change
+            for change in self.resource_changes
+            if "import" in change.get("change", {}).get("actions", [])
         ]
 
     @computed_field
@@ -236,10 +219,7 @@ class TerraformState(BaseModel):
 
     version: int = Field(..., description="State version")
     terraform_version: str = Field(..., description="Terraform version")
-    resources: List[Dict[str, Any]] = Field(
-        default_factory=list,
-        description="Resources in state"
-    )
+    resources: list[dict[str, Any]] = Field(default_factory=list, description="Resources in state")
 
     def has_resource(self, resource_type: str, resource_name: str) -> bool:
         """Check if resource exists in state.
@@ -252,8 +232,7 @@ class TerraformState(BaseModel):
             True if resource exists
         """
         for resource in self.resources:
-            if (resource.get('type') == resource_type and
-                resource.get('name') == resource_name):
+            if resource.get("type") == resource_type and resource.get("name") == resource_name:
                 return True
         return False
 
@@ -267,7 +246,7 @@ class TerraformState(BaseModel):
         """
         return len(self.resources)
 
-    def get_resources_by_type(self, resource_type: str) -> List[Dict[str, Any]]:
+    def get_resources_by_type(self, resource_type: str) -> list[dict[str, Any]]:
         """Get all resources of a specific type.
 
         Args:
@@ -276,7 +255,4 @@ class TerraformState(BaseModel):
         Returns:
             List of matching resources
         """
-        return [
-            resource for resource in self.resources
-            if resource.get('type') == resource_type
-        ]
+        return [resource for resource in self.resources if resource.get("type") == resource_type]

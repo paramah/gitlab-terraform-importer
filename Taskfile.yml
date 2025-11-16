@@ -173,3 +173,22 @@ tasks:
     desc: Zaktualizuj poetry.lock
     cmds:
       - poetry lock --no-update
+
+  ci:
+    desc: Uruchom sprawdzenia CI lokalnie
+    cmds:
+      - echo "Uruchamianie sprawdzeń CI..."
+      - task format-check
+      - task lint
+      - task type-check
+      - task test-cov
+      - echo "Wszystkie sprawdzenia CI zakończone sukcesem!"
+
+  ci-fix:
+    desc: Napraw kod i uruchom CI
+    cmds:
+      - echo "Naprawianie kodu..."
+      - task format
+      - task lint-fix
+      - task test-cov
+      - echo "Kod naprawiony i testy zakończone!"

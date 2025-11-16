@@ -7,30 +7,29 @@ custom modules and advanced analysis.
 __version__ = "0.2.0"
 
 # Configuration
+# Use cases
+from .application.use_cases import (
+    AnalyzeTerraformModulesUseCase,
+    GenerateTerraformImportsUseCase,
+    ImportGitLabStructureUseCase,
+)
 from .config import GitLabConfig, load_config
 
 # Domain entities
 from .domain.entities import (
     Group,
     Project,
-    TerraformResource,
     TerraformModule,
-    TerraformVariable,
     TerraformPlan,
+    TerraformResource,
     TerraformState,
+    TerraformVariable,
 )
 
 # Repository interfaces
 from .domain.repositories import (
     GitLabRepository,
     TerraformRepository,
-)
-
-# Use cases
-from .application.use_cases import (
-    ImportGitLabStructureUseCase,
-    AnalyzeTerraformModulesUseCase,
-    GenerateTerraformImportsUseCase,
 )
 
 # Infrastructure implementations

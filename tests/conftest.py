@@ -1,9 +1,7 @@
 """Pytest configuration and shared fixtures."""
 
-import os
 from pathlib import Path
-from typing import Any, Dict
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import pytest
 
@@ -11,15 +9,14 @@ from gitlab_terraform_importer.domain.entities import (
     Group,
     Project,
     TerraformModule,
+    TerraformOutput,
     TerraformResource,
     TerraformVariable,
-    TerraformOutput,
 )
 from gitlab_terraform_importer.domain.repositories import (
     GitLabRepository,
     TerraformRepository,
 )
-
 
 # ============================================================================
 # Domain Entity Fixtures
@@ -199,7 +196,7 @@ def temp_dir(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def sample_env_vars() -> Dict[str, str]:
+def sample_env_vars() -> dict[str, str]:
     """Sample environment variables for testing."""
     return {
         "GITLAB_URL": "https://gitlab.example.com",
@@ -215,7 +212,7 @@ def sample_env_vars() -> Dict[str, str]:
 
 
 @pytest.fixture
-def mock_env(sample_env_vars: Dict[str, str], monkeypatch):
+def mock_env(sample_env_vars: dict[str, str], monkeypatch):
     """Mock environment variables."""
     for key, value in sample_env_vars.items():
         monkeypatch.setenv(key, value)
@@ -313,4 +310,5 @@ def sample_tf_module_dir(temp_dir: Path, sample_tf_group_module_content: str) ->
 def cli_runner():
     """Create a Click CLI test runner."""
     from click.testing import CliRunner
+
     return CliRunner()

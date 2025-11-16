@@ -1,6 +1,6 @@
 """Domain entity for GitLab Project."""
 
-from typing import Optional, List
+
 from pydantic import BaseModel, Field, computed_field, field_validator
 
 
@@ -15,13 +15,13 @@ class Project(BaseModel):
     full_path: str = Field(..., description="Full path to project")
     visibility: str = Field(..., description="Visibility level")
     namespace_id: int = Field(..., description="Namespace/Group ID")
-    description: Optional[str] = Field(None, description="Project description")
+    description: str | None = Field(None, description="Project description")
     archived: bool = Field(default=False, description="Is project archived")
-    http_url_to_repo: Optional[str] = Field(None, description="HTTP URL to repository")
-    ssh_url_to_repo: Optional[str] = Field(None, description="SSH URL to repository")
-    web_url: Optional[str] = Field(None, description="Web URL to project")
-    default_branch: Optional[str] = Field(None, description="Default branch name")
-    topics: List[str] = Field(default_factory=list, description="Project topics/tags")
+    http_url_to_repo: str | None = Field(None, description="HTTP URL to repository")
+    ssh_url_to_repo: str | None = Field(None, description="SSH URL to repository")
+    web_url: str | None = Field(None, description="Web URL to project")
+    default_branch: str | None = Field(None, description="Default branch name")
+    topics: list[str] = Field(default_factory=list, description="Project topics/tags")
 
     # Feature flags
     issues_enabled: bool = Field(default=True, description="Issues enabled")
@@ -30,7 +30,7 @@ class Project(BaseModel):
     snippets_enabled: bool = Field(default=True, description="Snippets enabled")
     container_registry_enabled: bool = Field(default=True, description="Container registry enabled")
 
-    @field_validator('topics', mode='before')
+    @field_validator("topics", mode="before")
     @classmethod
     def ensure_topics_list(cls, v):
         """Ensure topics is always a list.
@@ -55,7 +55,7 @@ class Project(BaseModel):
         Returns:
             Terraform-safe resource name
         """
-        return self.full_path.replace('/', '_').replace('-', '_').replace('.', '_')
+        return self.full_path.replace("/", "_").replace("-", "_").replace(".", "_")
 
     @computed_field
     @property
@@ -65,9 +65,9 @@ class Project(BaseModel):
         Returns:
             Group path
         """
-        parts = self.full_path.split('/')
+        parts = self.full_path.split("/")
         if len(parts) > 1:
-            return '/'.join(parts[:-1])
+            return "/".join(parts[:-1])
         return ""
 
     def get_terraform_resource_name(self) -> str:

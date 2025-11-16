@@ -1,5 +1,12 @@
 # GitLab Terraform Importer - Clean Architecture Edition
 
+[![Tests](https://github.com/paramah/gitlab-terraform-importer/actions/workflows/tests.yml/badge.svg)](https://github.com/paramah/gitlab-terraform-importer/actions/workflows/tests.yml)
+[![GitLab CI/CD](https://gitlab.com/paramah/gitlab-terraform-importer/badges/main/pipeline.svg)](https://gitlab.com/paramah/gitlab-terraform-importer/-/pipelines)
+[![Coverage](https://gitlab.com/paramah/gitlab-terraform-importer/badges/main/coverage.svg)](https://gitlab.com/paramah/gitlab-terraform-importer/-/pipelines)
+[![Python Version](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 Advanced tool for importing GitLab group and project structure into Terraform configuration, built with Clean Architecture. Enables custom Terraform module analysis, plan parsing, and automatic import generation.
 
 **[Wersja Polska / Polish Version](README_PL.md)**
@@ -673,6 +680,78 @@ task test-cov
 - **Application Layer**: 20+ tests (use cases, business logic)
 - **Infrastructure Layer**: 26+ tests (GitLab/Terraform clients)
 - **Interface Layer**: 12+ tests (CLI commands)
+
+## 🔄 CI/CD
+
+The project includes automated CI/CD pipelines for both **GitHub Actions** and **GitLab CI/CD**.
+
+### GitHub Actions
+
+Workflow file: `.github/workflows/tests.yml`
+
+**Pipeline stages:**
+1. **Lint** - Code quality checks (Black, Ruff)
+2. **Test** - Run tests on Python 3.13 and 3.14
+3. **Type Check** - Static type checking with MyPy
+4. **Security** - Dependency security scan with Safety
+5. **Build** - Build Python package
+6. **Test Summary** - Aggregate test results
+
+**Features:**
+- ✅ Multi-version Python testing (3.13, 3.14)
+- ✅ Coverage reports uploaded to Codecov
+- ✅ HTML coverage reports as artifacts
+- ✅ Poetry dependency caching
+- ✅ Automatic on push to main/develop and PRs
+
+### GitLab CI/CD
+
+Configuration file: `.gitlab-ci.yml`
+
+**Pipeline stages:**
+1. **lint** - Code formatting (Black, Ruff) and type checking (MyPy)
+2. **test** - Run tests on multiple Python versions
+3. **security** - Security scanning (Safety, Bandit)
+4. **build** - Build package for distribution
+5. **report** - Generate and publish coverage reports
+6. **pages** - Publish coverage to GitLab Pages
+
+**Features:**
+- ✅ Multi-version Python testing (3.13, 3.14)
+- ✅ Coverage visualization in merge requests
+- ✅ GitLab Pages for coverage reports
+- ✅ Poetry dependency caching
+- ✅ Security scanning with Bandit
+- ✅ Artifact retention (30 days)
+- ✅ Manual PyPI release job for tags
+
+**View CI/CD Results:**
+- GitHub: Check the "Actions" tab
+- GitLab: Check "CI/CD > Pipelines" and "CI/CD > Jobs"
+- Coverage: Available in GitLab Pages (main branch only)
+
+### Running Linters Locally
+
+```bash
+# Format code with Black
+poetry run black src/ tests/
+
+# Check formatting
+poetry run black --check src/ tests/
+
+# Lint with Ruff
+poetry run ruff check src/ tests/
+
+# Auto-fix Ruff issues
+poetry run ruff check --fix src/ tests/
+
+# Type check with MyPy
+poetry run mypy src/gitlab_terraform_importer --ignore-missing-imports
+
+# With Taskfile
+task lint
+task format
+```
 
 ## 🏗️ Development
 

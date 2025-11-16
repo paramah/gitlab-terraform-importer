@@ -1,15 +1,16 @@
 """Terraform repository interface (port)."""
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
 from pathlib import Path
+from typing import Any
+
 from ..entities import (
-    TerraformModule,
-    TerraformResource,
-    TerraformPlan,
-    TerraformState,
     Group,
     Project,
+    TerraformModule,
+    TerraformPlan,
+    TerraformResource,
+    TerraformState,
 )
 
 
@@ -65,7 +66,7 @@ class TerraformRepository(ABC):
         pass
 
     @abstractmethod
-    def analyze_module_variables(self, module: TerraformModule) -> Dict[str, Any]:
+    def analyze_module_variables(self, module: TerraformModule) -> dict[str, Any]:
         """Analyze variables in a module and extract metadata.
 
         Args:
@@ -78,10 +79,8 @@ class TerraformRepository(ABC):
 
     @abstractmethod
     def generate_import_commands(
-        self,
-        resources: List[TerraformResource],
-        output_file: Optional[Path] = None
-    ) -> List[str]:
+        self, resources: list[TerraformResource], output_file: Path | None = None
+    ) -> list[str]:
         """Generate Terraform import commands for resources.
 
         Args:
@@ -95,11 +94,8 @@ class TerraformRepository(ABC):
 
     @abstractmethod
     def generate_resource_configs(
-        self,
-        groups: List[Group],
-        projects: List[Project],
-        output_dir: Path
-    ) -> List[Path]:
+        self, groups: list[Group], projects: list[Project], output_dir: Path
+    ) -> list[Path]:
         """Generate Terraform resource configuration files.
 
         Args:
@@ -114,11 +110,8 @@ class TerraformRepository(ABC):
 
     @abstractmethod
     def map_module_to_gitlab_resources(
-        self,
-        group_module: TerraformModule,
-        project_module: TerraformModule,
-        gitlab_data: Group
-    ) -> List[TerraformResource]:
+        self, group_module: TerraformModule, project_module: TerraformModule, gitlab_data: Group
+    ) -> list[TerraformResource]:
         """Map GitLab data to Terraform resources based on module definitions.
 
         Args:
@@ -132,11 +125,7 @@ class TerraformRepository(ABC):
         pass
 
     @abstractmethod
-    def validate_module_compatibility(
-        self,
-        module: TerraformModule,
-        resource_type: str
-    ) -> bool:
+    def validate_module_compatibility(self, module: TerraformModule, resource_type: str) -> bool:
         """Validate if a module is compatible with a resource type.
 
         Args:

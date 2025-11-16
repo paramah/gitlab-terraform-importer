@@ -1,10 +1,10 @@
 """Use case for generating Terraform import configuration."""
 
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 import logging
+from pathlib import Path
+from typing import Any
 
-from ...domain.entities import Group, Project, TerraformModule, TerraformResource
+from ...domain.entities import Group, Project, TerraformModule
 from ...domain.repositories import TerraformRepository
 
 logger = logging.getLogger(__name__)
@@ -27,8 +27,8 @@ class GenerateTerraformImportsUseCase:
         group_module: TerraformModule,
         project_module: TerraformModule,
         output_dir: Path,
-        generate_import_script: bool = True
-    ) -> Dict[str, Any]:
+        generate_import_script: bool = True,
+    ) -> dict[str, Any]:
         """Execute the Terraform import generation use case.
 
         Args:
@@ -48,9 +48,7 @@ class GenerateTerraformImportsUseCase:
 
         # Map GitLab data to Terraform resources based on modules
         resources = self.terraform_repository.map_module_to_gitlab_resources(
-            group_module=group_module,
-            project_module=project_module,
-            gitlab_data=gitlab_structure
+            group_module=group_module, project_module=project_module, gitlab_data=gitlab_structure
         )
 
         logger.info(f"Mapped {len(resources)} resources from GitLab data")
@@ -61,9 +59,7 @@ class GenerateTerraformImportsUseCase:
 
         # Generate Terraform configuration files
         generated_files = self.terraform_repository.generate_resource_configs(
-            groups=groups,
-            projects=projects,
-            output_dir=output_dir
+            groups=groups, projects=projects, output_dir=output_dir
         )
 
         logger.info(f"Generated {len(generated_files)} Terraform configuration files")
@@ -75,8 +71,7 @@ class GenerateTerraformImportsUseCase:
         if generate_import_script:
             import_script_path = output_dir / "import.sh"
             import_commands = self.terraform_repository.generate_import_commands(
-                resources=resources,
-                output_file=import_script_path
+                resources=resources, output_file=import_script_path
             )
             logger.info(f"Generated import script: {import_script_path}")
 
@@ -93,7 +88,7 @@ class GenerateTerraformImportsUseCase:
         logger.info("Terraform import generation complete")
         return result
 
-    def _collect_all_groups(self, root_group: Group) -> List[Group]:
+    def _collect_all_groups(self, root_group: Group) -> list[Group]:
         """Recursively collect all groups.
 
         Args:
@@ -107,7 +102,7 @@ class GenerateTerraformImportsUseCase:
             groups.extend(self._collect_all_groups(subgroup))
         return groups
 
-    def _collect_all_projects(self, root_group: Group) -> List[Project]:
+    def _collect_all_projects(self, root_group: Group) -> list[Project]:
         """Recursively collect all projects.
 
         Args:
