@@ -16,6 +16,7 @@ from ...domain.repositories import TerraformRepository
 from .terraform_parser import TerraformParser
 from .module_analyzer import ModuleAnalyzer
 from .import_generator import ImportGenerator
+from .module_downloader import ModuleDownloader
 
 logger = logging.getLogger(__name__)
 
@@ -33,16 +34,32 @@ class TerraformClient(TerraformRepository):
         self.parser = TerraformParser()
         self.analyzer = ModuleAnalyzer()
         self.generator = ImportGenerator(terraform_binary=terraform_binary)
+        self.downloader = ModuleDownloader()
 
-    def parse_module(self, module_path: Path) -> TerraformModule:
-        """Parse a Terraform module from filesystem.
+    def parse_module(self, module_source: str | Path, subdirectory: Optional[str] = None) -> TerraformModule:
+        """Parse a Terraform module from filesystem, HTTP URL, or Git repository.
 
         Args:
-            module_path: Path to the module directory
+            module_source: Path to module directory, HTTP URL to archive, or Git repository URL
+            subdirectory: Optional subdirectory within the module source
 
         Returns:
             Parsed TerraformModule
+
+        Raises:
+            ValueError: If module source is invalid
+            RuntimeError: If download or parsing fails
         """
+        # Download module if it's a URL
+        if isinstance(module_source, str) and not Path(module_source).exists():
+            logger.info(f"Downloading module from: {module_source}")
+            module_path = self.downloader.download_module(module_source, subdirectory)
+        else:
+            # Convert to Path if string
+            module_path = Path(module_source)
+            if subdirectory:
+                module_path = module_path / subdirectory
+
         return self.parser.parse_module_directory(module_path)
 
     def parse_plan(self, plan_file: Path) -> TerraformPlan:
