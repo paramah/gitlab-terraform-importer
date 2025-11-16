@@ -69,11 +69,22 @@ class GitLabConfig(BaseSettings):
         description="Maximum group depth to import (None for unlimited)"
     )
 
+    # Terraform/OpenTofu configuration
+    terraform_binary: str = Field(
+        default="terraform",
+        description="Terraform binary to use (terraform or tofu)"
+    )
+
     def validate_config(self) -> None:
         """Validate configuration consistency."""
         if not self.root_group_id and not self.root_group_path:
             raise ValueError(
                 "Either root_group_id or root_group_path must be specified"
+            )
+
+        if self.terraform_binary not in ["terraform", "tofu"]:
+            raise ValueError(
+                f"terraform_binary must be 'terraform' or 'tofu', got: {self.terraform_binary}"
             )
 
 

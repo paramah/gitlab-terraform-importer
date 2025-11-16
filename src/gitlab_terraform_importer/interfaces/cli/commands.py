@@ -78,6 +78,8 @@ def validate_config(ctx) -> None:
         console.print(f"  Max Depth:         {config.max_depth or 'unlimited'}")
         console.print(f"  Include Archived:  {config.include_archived}")
 
+        console.print(f"  Terraform Binary:  {config.terraform_binary}")
+
     except Exception as e:
         console.print(f"[red]✗[/red] Configuration error: {e}")
         raise click.Abort()
@@ -145,7 +147,7 @@ def import_structure(ctx, output_dir: Optional[str], dry_run: bool) -> None:
 
         # Create clients
         gitlab_client = GitLabClient(config)
-        terraform_client = TerraformClient()
+        terraform_client = TerraformClient(terraform_binary=config.terraform_binary)
 
         # Create use cases
         import_use_case = ImportGitLabStructureUseCase(gitlab_client)
@@ -199,10 +201,10 @@ def import_structure(ctx, output_dir: Optional[str], dry_run: bool) -> None:
 
         console.print(f"\n[bold]Next steps:[/bold]")
         console.print(f"  1. cd {config.output_dir}")
-        console.print(f"  2. terraform init")
+        console.print(f"  2. {config.terraform_binary} init")
         console.print(f"  3. Review generated files")
         console.print(f"  4. Run ./import.sh to import resources")
-        console.print(f"  5. terraform plan")
+        console.print(f"  5. {config.terraform_binary} plan")
 
     except Exception as e:
         console.print(f"[red]✗[/red] Error: {e}")
@@ -218,7 +220,8 @@ def import_structure(ctx, output_dir: Optional[str], dry_run: bool) -> None:
 def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> None:
     """Analyze Terraform modules for groups and projects."""
     try:
-        terraform_client = TerraformClient()
+        config = load_config()
+        terraform_client = TerraformClient(terraform_binary=config.terraform_binary)
         analyze_use_case = AnalyzeTerraformModulesUseCase(terraform_client)
 
         with Progress(
@@ -288,7 +291,7 @@ def import_with_modules(
 
         # Create clients
         gitlab_client = GitLabClient(config)
-        terraform_client = TerraformClient()
+        terraform_client = TerraformClient(terraform_binary=config.terraform_binary)
 
         # Create use cases
         import_use_case = ImportGitLabStructureUseCase(gitlab_client)
@@ -341,9 +344,9 @@ def import_with_modules(
 
         console.print(f"\n[bold]Next steps:[/bold]")
         console.print(f"  1. cd {config.output_dir}")
-        console.print(f"  2. terraform init")
+        console.print(f"  2. {config.terraform_binary} init")
         console.print(f"  3. Run ./import.sh to import resources")
-        console.print(f"  4. terraform plan")
+        console.print(f"  4. {config.terraform_binary} plan")
 
     except Exception as e:
         console.print(f"[red]✗[/red] Error: {e}")

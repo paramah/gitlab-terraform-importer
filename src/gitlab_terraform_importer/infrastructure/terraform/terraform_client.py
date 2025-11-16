@@ -23,11 +23,16 @@ logger = logging.getLogger(__name__)
 class TerraformClient(TerraformRepository):
     """Terraform repository implementation."""
 
-    def __init__(self):
-        """Initialize Terraform client."""
+    def __init__(self, terraform_binary: str = "terraform"):
+        """Initialize Terraform client.
+
+        Args:
+            terraform_binary: Terraform binary to use (terraform or tofu)
+        """
+        self.terraform_binary = terraform_binary
         self.parser = TerraformParser()
         self.analyzer = ModuleAnalyzer()
-        self.generator = ImportGenerator()
+        self.generator = ImportGenerator(terraform_binary=terraform_binary)
 
     def parse_module(self, module_path: Path) -> TerraformModule:
         """Parse a Terraform module from filesystem.
