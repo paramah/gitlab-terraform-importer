@@ -8,11 +8,19 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "python-gitlab>=4.0.0",
+    "python-dotenv>=1.0.0",
+    "gql[requests]>=3.5.0",
+    "click>=8.1.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
 ]
 
 [tool.poetry]
 packages = [{include = "gitlab_terraform_importer", from = "src"}]
 
+[project.scripts]
+gitlab-tf-import = "gitlab_terraform_importer.cli:main"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
