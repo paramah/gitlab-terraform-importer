@@ -1,0 +1,19 @@
+[project]
+name = "gitlab-terraform-importer"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Aleksander Cynarski",email = "aleksander@cynarski.pl"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+]
+
+[tool.poetry]
+packages = [{include = "gitlab_terraform_importer", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
