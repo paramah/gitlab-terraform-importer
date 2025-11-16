@@ -1,6 +1,5 @@
 """Domain entity for GitLab Project."""
 
-
 from pydantic import BaseModel, Field, computed_field, field_validator
 
 

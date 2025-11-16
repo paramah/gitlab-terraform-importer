@@ -3,7 +3,6 @@
 This module handles environment-based configuration using pydantic-settings.
 """
 
-
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 

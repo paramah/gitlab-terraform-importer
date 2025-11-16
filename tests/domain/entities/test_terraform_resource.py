@@ -1,6 +1,5 @@
 """Tests for Terraform entities."""
 
-
 from gitlab_terraform_importer.domain.entities import (
     TerraformModule,
     TerraformOutput,
