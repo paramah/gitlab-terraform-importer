@@ -20,6 +20,7 @@ Advanced tool for importing GitLab group and project structure into Terraform co
 - 📋 **Terraform Plan Parser** - Analyze Terraform plans (JSON format)
 - 🔍 **Module Variable Analyzer** - Detailed analysis of module variables
 - 🚀 **Auto-import Generator** - Automatic generation of `terraform import` scripts
+- 📝 **Dual Format Support** - Generate both HCL (.tf) and JSON (.tf.json) Terraform files
 - ⚙️ **ENV Configuration** - Full configuration via environment variables
 - 🎨 **Rich CLI** - Colorful interface with progress bars and tree view
 
@@ -263,6 +264,10 @@ GITLAB_INCLUDE_ARCHIVED=false
 GITLAB_MAX_DEPTH=5
 GITLAB_TIMEOUT=60
 GITLAB_VERIFY_SSL=true
+
+# Terraform/OpenTofu Configuration
+GITLAB_TERRAFORM_BINARY=terraform  # or 'tofu' for OpenTofu
+GITLAB_OUTPUT_FORMAT=hcl           # or 'json' for .tf.json files
 ```
 
 ## 📖 Usage
@@ -361,6 +366,34 @@ gitlab-importer import-structure --dry-run
 # Verbose mode
 gitlab-importer -v import-structure
 ```
+
+### Output Format Configuration
+
+The tool supports generating Terraform files in two formats:
+
+**HCL Format (.tf files)** - Default format:
+```bash
+# Set in .env
+GITLAB_OUTPUT_FORMAT=hcl
+
+# Generates: provider.tf, groups.tf, projects.tf
+gitlab-importer import-structure
+```
+
+**JSON Format (.tf.json files)** - Alternative format:
+```bash
+# Set in .env
+GITLAB_OUTPUT_FORMAT=json
+
+# Generates: provider.tf.json, groups.tf.json, projects.tf.json
+gitlab-importer import-structure
+```
+
+Both formats are fully compatible with Terraform and OpenTofu. The JSON format can be useful for:
+- Programmatic generation and manipulation
+- Integration with other tools that produce JSON
+- Easier parsing and validation in automated pipelines
+- Situations where HCL syntax might be problematic
 
 ### Terraform Module Analysis
 
@@ -652,6 +685,8 @@ output "id" {
 | `GITLAB_VERIFY_SSL` | SSL verification | No | `true` |
 | `GITLAB_INCLUDE_ARCHIVED` | Include archived | No | `false` |
 | `GITLAB_MAX_DEPTH` | Max depth | No | `None` |
+| `GITLAB_TERRAFORM_BINARY` | Terraform binary (terraform/tofu) | No | `terraform` |
+| `GITLAB_OUTPUT_FORMAT` | Output format (hcl/json) | No | `hcl` |
 
 \* Either `GITLAB_ROOT_GROUP_ID` **or** `GITLAB_ROOT_GROUP_PATH` is required
 

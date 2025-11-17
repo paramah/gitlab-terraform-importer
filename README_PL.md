@@ -11,6 +11,7 @@ Zaawansowane narzędzie do importowania struktury grup i projektów GitLab do ko
 - 📋 **Terraform Plan Parser** - Analiza planów Terraform (JSON format)
 - 🔍 **Module Variable Analyzer** - Szczegółowa analiza zmiennych w modułach
 - 🚀 **Auto-import Generator** - Automatyczne generowanie skryptów `terraform import`
+- 📝 **Podwójny format wyjściowy** - Generowanie plików Terraform w formacie HCL (.tf) i JSON (.tf.json)
 - ⚙️ **ENV Configuration** - Pełna konfiguracja przez zmienne środowiskowe
 - 🎨 **Rich CLI** - Kolorowy interfejs z progress barami i tree view
 
@@ -254,6 +255,10 @@ GITLAB_INCLUDE_ARCHIVED=false
 GITLAB_MAX_DEPTH=5
 GITLAB_TIMEOUT=60
 GITLAB_VERIFY_SSL=true
+
+# Konfiguracja Terraform/OpenTofu
+GITLAB_TERRAFORM_BINARY=terraform  # lub 'tofu' dla OpenTofu
+GITLAB_OUTPUT_FORMAT=hcl           # lub 'json' dla plików .tf.json
 ```
 
 ## 📖 Użycie
@@ -352,6 +357,34 @@ gitlab-importer import-structure --dry-run
 # Verbose mode
 gitlab-importer -v import-structure
 ```
+
+### Konfiguracja formatu wyjściowego
+
+Narzędzie obsługuje generowanie plików Terraform w dwóch formatach:
+
+**Format HCL (pliki .tf)** - Format domyślny:
+```bash
+# Ustaw w .env
+GITLAB_OUTPUT_FORMAT=hcl
+
+# Generuje: provider.tf, groups.tf, projects.tf
+gitlab-importer import-structure
+```
+
+**Format JSON (pliki .tf.json)** - Format alternatywny:
+```bash
+# Ustaw w .env
+GITLAB_OUTPUT_FORMAT=json
+
+# Generuje: provider.tf.json, groups.tf.json, projects.tf.json
+gitlab-importer import-structure
+```
+
+Oba formaty są w pełni kompatybilne z Terraform i OpenTofu. Format JSON może być przydatny do:
+- Programatycznego generowania i manipulacji
+- Integracji z innymi narzędziami produkującymi JSON
+- Łatwiejszego parsowania i walidacji w zautomatyzowanych pipeline'ach
+- Sytuacji, gdy składnia HCL może być problematyczna
 
 ### Analiza modułów Terraform
 
@@ -643,6 +676,8 @@ output "id" {
 | `GITLAB_VERIFY_SSL` | Weryfikacja SSL | Nie | `true` |
 | `GITLAB_INCLUDE_ARCHIVED` | Uwzględnij archived | Nie | `false` |
 | `GITLAB_MAX_DEPTH` | Maks. głębokość | Nie | `None` |
+| `GITLAB_TERRAFORM_BINARY` | Binarka Terraform (terraform/tofu) | Nie | `terraform` |
+| `GITLAB_OUTPUT_FORMAT` | Format wyjściowy (hcl/json) | Nie | `hcl` |
 
 \* Wymagane jest podanie `GITLAB_ROOT_GROUP_ID` **lub** `GITLAB_ROOT_GROUP_PATH`
 

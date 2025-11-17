@@ -1,8 +1,9 @@
 """Terraform import command generator."""
 
 import os
+import json
 from pathlib import Path
-from typing import List, Optional, TextIO
+from typing import List, Optional, TextIO, Dict, Any
 import logging
 
 from ...domain.entities import (
@@ -18,13 +19,18 @@ logger = logging.getLogger(__name__)
 class ImportGenerator:
     """Generator for Terraform import commands and configuration files."""
 
-    def __init__(self, terraform_binary: str = "terraform"):
+    def __init__(self, terraform_binary: str = "terraform", output_format: str = "hcl"):
         """Initialize the import generator.
 
         Args:
             terraform_binary: Terraform binary to use (terraform or tofu)
+            output_format: Output format for Terraform files (hcl or json)
         """
         self.terraform_binary = terraform_binary
+        self.output_format = output_format.lower()
+
+        if self.output_format not in ["hcl", "json"]:
+            raise ValueError(f"output_format must be 'hcl' or 'json', got: {self.output_format}")
 
     def generate_import_commands(
         self,
@@ -101,25 +107,28 @@ class ImportGenerator:
         output_dir.mkdir(parents=True, exist_ok=True)
         generated_files = []
 
+        # Determine file extension based on output format
+        file_ext = ".tf.json" if self.output_format == "json" else ".tf"
+
         # Generate provider configuration if there are groups or projects
         if groups or projects:
-            provider_file = output_dir / "provider.tf"
+            provider_file = output_dir / f"provider{file_ext}"
             self._generate_provider_file(provider_file)
             generated_files.append(provider_file)
 
         # Generate groups file
         if groups:
-            groups_file = output_dir / "groups.tf"
+            groups_file = output_dir / f"groups{file_ext}"
             self._generate_groups_file(groups, groups_file)
             generated_files.append(groups_file)
 
         # Generate projects file
         if projects:
-            projects_file = output_dir / "projects.tf"
+            projects_file = output_dir / f"projects{file_ext}"
             self._generate_projects_file(projects, projects_file)
             generated_files.append(projects_file)
 
-        logger.info(f"Generated {len(generated_files)} Terraform files")
+        logger.info(f"Generated {len(generated_files)} Terraform files in {self.output_format.upper()} format")
         return generated_files
 
     def generate_resource_configs(
@@ -146,6 +155,17 @@ class ImportGenerator:
         Args:
             output_file: Output file path
         """
+        if self.output_format == "json":
+            self._generate_provider_file_json(output_file)
+        else:
+            self._generate_provider_file_hcl(output_file)
+
+    def _generate_provider_file_hcl(self, output_file: Path) -> None:
+        """Generate provider configuration file in HCL format.
+
+        Args:
+            output_file: Output file path
+        """
         binary_comment = "Terraform/OpenTofu" if self.terraform_binary == "tofu" else "Terraform"
 
         with open(output_file, 'w') as f:
@@ -165,6 +185,30 @@ class ImportGenerator:
             f.write('  # - GITLAB_BASE_URL (optional)\n')
             f.write('}\n')
 
+    def _generate_provider_file_json(self, output_file: Path) -> None:
+        """Generate provider configuration file in JSON format.
+
+        Args:
+            output_file: Output file path
+        """
+        config = {
+            "terraform": {
+                "required_providers": {
+                    "gitlab": {
+                        "source": "gitlabhq/gitlab",
+                        "version": "~> 17.0"
+                    }
+                }
+            },
+            "provider": {
+                "gitlab": {}
+            }
+        }
+
+        with open(output_file, 'w') as f:
+            json.dump(config, f, indent=2)
+            f.write('\n')
+
     def _generate_groups_file(self, groups: List[Group], output_file: Path) -> None:
         """Generate groups configuration file.
 
@@ -172,10 +216,40 @@ class ImportGenerator:
             groups: List of groups
             output_file: Output file path
         """
+        if self.output_format == "json":
+            self._generate_groups_file_json(groups, output_file)
+        else:
+            self._generate_groups_file_hcl(groups, output_file)
+
+    def _generate_groups_file_hcl(self, groups: List[Group], output_file: Path) -> None:
+        """Generate groups configuration file in HCL format.
+
+        Args:
+            groups: List of groups
+            output_file: Output file path
+        """
         with open(output_file, 'w') as f:
             for group in groups:
-                self._write_group_resource(f, group)
+                self._write_group_resource_hcl(f, group)
                 f.write('\n')
+
+    def _generate_groups_file_json(self, groups: List[Group], output_file: Path) -> None:
+        """Generate groups configuration file in JSON format.
+
+        Args:
+            groups: List of groups
+            output_file: Output file path
+        """
+        resources = {}
+        for group in groups:
+            resource_name = group.get_terraform_resource_name()
+            resources[resource_name] = self._build_group_resource_json(group)
+
+        config = {"resource": {"gitlab_group": resources}}
+
+        with open(output_file, 'w') as f:
+            json.dump(config, f, indent=2)
+            f.write('\n')
 
     def _generate_projects_file(self, projects: List[Project], output_file: Path) -> None:
         """Generate projects configuration file.
@@ -184,13 +258,43 @@ class ImportGenerator:
             projects: List of projects
             output_file: Output file path
         """
+        if self.output_format == "json":
+            self._generate_projects_file_json(projects, output_file)
+        else:
+            self._generate_projects_file_hcl(projects, output_file)
+
+    def _generate_projects_file_hcl(self, projects: List[Project], output_file: Path) -> None:
+        """Generate projects configuration file in HCL format.
+
+        Args:
+            projects: List of projects
+            output_file: Output file path
+        """
         with open(output_file, 'w') as f:
             for project in projects:
-                self._write_project_resource(f, project)
+                self._write_project_resource_hcl(f, project)
                 f.write('\n')
 
-    def _write_group_resource(self, f: TextIO, group: Group) -> None:
-        """Write a group resource to file.
+    def _generate_projects_file_json(self, projects: List[Project], output_file: Path) -> None:
+        """Generate projects configuration file in JSON format.
+
+        Args:
+            projects: List of projects
+            output_file: Output file path
+        """
+        resources = {}
+        for project in projects:
+            resource_name = project.get_terraform_resource_name()
+            resources[resource_name] = self._build_project_resource_json(project)
+
+        config = {"resource": {"gitlab_project": resources}}
+
+        with open(output_file, 'w') as f:
+            json.dump(config, f, indent=2)
+            f.write('\n')
+
+    def _write_group_resource_hcl(self, f: TextIO, group: Group) -> None:
+        """Write a group resource to file in HCL format.
 
         Args:
             f: File handle
@@ -217,8 +321,34 @@ class ImportGenerator:
 
         f.write('}\n')
 
-    def _write_project_resource(self, f: TextIO, project: Project) -> None:
-        """Write a project resource to file.
+    def _build_group_resource_json(self, group: Group) -> Dict[str, Any]:
+        """Build a group resource as a JSON-compatible dictionary.
+
+        Args:
+            group: Group entity
+
+        Returns:
+            Dictionary representing the group resource
+        """
+        resource = {
+            "name": group.name,
+            "path": group.path,
+            "visibility_level": group.visibility
+        }
+
+        if group.description:
+            resource["description"] = group.description
+
+        if group.parent_id:
+            parent_ref = self._get_parent_reference(group)
+            if parent_ref:
+                resource["parent_id"] = f"${{{parent_ref}}}"
+            # Note: JSON format doesn't support comments, so we omit manual reference
+
+        return resource
+
+    def _write_project_resource_hcl(self, f: TextIO, project: Project) -> None:
+        """Write a project resource to file in HCL format.
 
         Args:
             f: File handle
@@ -260,6 +390,46 @@ class ImportGenerator:
             f.write(f'  archived = true\n')
 
         f.write('}\n')
+
+    def _build_project_resource_json(self, project: Project) -> Dict[str, Any]:
+        """Build a project resource as a JSON-compatible dictionary.
+
+        Args:
+            project: Project entity
+
+        Returns:
+            Dictionary representing the project resource
+        """
+        resource = {
+            "name": project.name,
+            "path": project.path,
+            "visibility_level": project.visibility,
+            "issues_enabled": project.issues_enabled,
+            "merge_requests_enabled": project.merge_requests_enabled,
+            "wiki_enabled": project.wiki_enabled,
+            "snippets_enabled": project.snippets_enabled,
+            "container_registry_enabled": project.container_registry_enabled
+        }
+
+        if project.description:
+            resource["description"] = project.description
+
+        # Namespace reference
+        group_path = project.get_group_path()
+        if group_path:
+            group_resource = group_path.replace('/', '_').replace('-', '_').replace('.', '_')
+            resource["namespace_id"] = f"${{gitlab_group.{group_resource}.id}}"
+
+        if project.default_branch:
+            resource["default_branch"] = project.default_branch
+
+        if project.topics:
+            resource["topics"] = project.topics
+
+        if project.archived:
+            resource["archived"] = True
+
+        return resource
 
     def map_gitlab_to_terraform_resources(
         self,

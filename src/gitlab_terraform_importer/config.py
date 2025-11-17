@@ -54,6 +54,10 @@ class GitLabConfig(BaseSettings):
         default="terraform", description="Terraform binary to use (terraform or tofu)"
     )
 
+    output_format: str = Field(
+        default="hcl", description="Output format for Terraform files (hcl or json)"
+    )
+
     def validate_config(self) -> None:
         """Validate configuration consistency."""
         if not self.root_group_id and not self.root_group_path:
@@ -62,6 +66,11 @@ class GitLabConfig(BaseSettings):
         if self.terraform_binary not in ["terraform", "tofu"]:
             raise ValueError(
                 f"terraform_binary must be 'terraform' or 'tofu', got: {self.terraform_binary}"
+            )
+
+        if self.output_format not in ["hcl", "json"]:
+            raise ValueError(
+                f"output_format must be 'hcl' or 'json', got: {self.output_format}"
             )
 
 
