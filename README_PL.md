@@ -258,7 +258,7 @@ GITLAB_VERIFY_SSL=true
 
 # Konfiguracja Terraform/OpenTofu
 GITLAB_TERRAFORM_BINARY=terraform  # lub 'tofu' dla OpenTofu
-GITLAB_OUTPUT_FORMAT=hcl           # lub 'json' dla plików .tf.json
+GITLAB_OUTPUT_FORMAT=json          # lub 'hcl' dla plików .tf
 ```
 
 ## 📖 Użycie
@@ -362,7 +362,16 @@ gitlab-importer -v import-structure
 
 Narzędzie obsługuje generowanie plików Terraform w dwóch formatach:
 
-**Format HCL (pliki .tf)** - Format domyślny:
+**Format JSON (pliki .tf.json)** - Format domyślny:
+```bash
+# Ustaw w .env (lub pomiń - json jest domyślny)
+GITLAB_OUTPUT_FORMAT=json
+
+# Generuje: provider.tf.json, groups.tf.json, projects.tf.json
+gitlab-importer import-structure
+```
+
+**Format HCL (pliki .tf)** - Format alternatywny:
 ```bash
 # Ustaw w .env
 GITLAB_OUTPUT_FORMAT=hcl
@@ -371,16 +380,7 @@ GITLAB_OUTPUT_FORMAT=hcl
 gitlab-importer import-structure
 ```
 
-**Format JSON (pliki .tf.json)** - Format alternatywny:
-```bash
-# Ustaw w .env
-GITLAB_OUTPUT_FORMAT=json
-
-# Generuje: provider.tf.json, groups.tf.json, projects.tf.json
-gitlab-importer import-structure
-```
-
-Oba formaty są w pełni kompatybilne z Terraform i OpenTofu. Format JSON może być przydatny do:
+Oba formaty są w pełni kompatybilne z Terraform i OpenTofu. Format JSON jest przydatny do:
 - Programatycznego generowania i manipulacji
 - Integracji z innymi narzędziami produkującymi JSON
 - Łatwiejszego parsowania i walidacji w zautomatyzowanych pipeline'ach
@@ -677,7 +677,7 @@ output "id" {
 | `GITLAB_INCLUDE_ARCHIVED` | Uwzględnij archived | Nie | `false` |
 | `GITLAB_MAX_DEPTH` | Maks. głębokość | Nie | `None` |
 | `GITLAB_TERRAFORM_BINARY` | Binarka Terraform (terraform/tofu) | Nie | `terraform` |
-| `GITLAB_OUTPUT_FORMAT` | Format wyjściowy (hcl/json) | Nie | `hcl` |
+| `GITLAB_OUTPUT_FORMAT` | Format wyjściowy (hcl/json) | Nie | `json` |
 
 \* Wymagane jest podanie `GITLAB_ROOT_GROUP_ID` **lub** `GITLAB_ROOT_GROUP_PATH`
 

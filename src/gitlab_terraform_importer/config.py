@@ -55,7 +55,7 @@ class GitLabConfig(BaseSettings):
     )
 
     output_format: str = Field(
-        default="hcl", description="Output format for Terraform files (hcl or json)"
+        default="json", description="Output format for Terraform files (hcl or json)"
     )
 
     def validate_config(self) -> None:
