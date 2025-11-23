@@ -17,6 +17,7 @@ Advanced tool for importing GitLab group and project structure into Terraform co
 - 🔄 **GitLab Structure Import** - Recursive import of group and project hierarchies
 - 🌐 **Dual API Support** - Utilizes both REST API and GraphQL GitLab SDK
 - 📦 **Terraform Module Analysis** - Parse and validate custom modules
+- 🌍 **Module Download Support** - Download modules from HTTP URLs or Git repositories
 - 📋 **Terraform Plan Parser** - Analyze Terraform plans (JSON format)
 - 🔍 **Module Variable Analyzer** - Detailed analysis of module variables
 - 🚀 **Auto-import Generator** - Automatic generation of `terraform import` scripts
@@ -364,13 +365,32 @@ gitlab-importer -v import-structure
 
 ### Terraform Module Analysis
 
-New functionality! Analyze custom Terraform modules:
+New functionality! Analyze custom Terraform modules from local paths, HTTP URLs, or Git repositories:
 
 ```bash
+# Analyze local modules
 gitlab-importer analyze-modules \
   ./modules/gitlab-group \
   ./modules/gitlab-project
+
+# Analyze modules from HTTP URLs
+gitlab-importer analyze-modules \
+  https://example.com/modules/group.zip \
+  https://example.com/modules/project.tar.gz
+
+# Analyze modules from Git repositories
+gitlab-importer analyze-modules \
+  https://github.com/user/terraform-modules.git \
+  https://gitlab.com/user/terraform-modules.git \
+  --group-subdir modules/gitlab-group \
+  --project-subdir modules/gitlab-project
 ```
+
+**Supported Module Sources:**
+- **Local path**: `./modules/gitlab-group`
+- **HTTP/HTTPS URL**: `https://example.com/module.zip` (supports .zip, .tar.gz, .tar)
+- **Git repository**: `https://github.com/user/repo.git` or `git@github.com:user/repo.git`
+- **Subdirectories**: Use `--group-subdir` and `--project-subdir` for modules in subdirectories
 
 Output:
 ```
@@ -378,7 +398,7 @@ Module Analysis:
 
 Group Module:
   Name:              gitlab-group
-  Path:              ./modules/gitlab-group
+  Source:            https://github.com/user/terraform-modules.git
   Variables:         8
   Required:          3
   Resources:         1
@@ -386,7 +406,7 @@ Group Module:
 
 Project Module:
   Name:              gitlab-project
-  Path:              ./modules/gitlab-project
+  Source:            https://github.com/user/terraform-modules.git
   Variables:         15
   Required:          5
   Resources:         1
@@ -395,21 +415,54 @@ Project Module:
 
 ### Import with Custom Modules
 
-Most important functionality! Import GitLab using your modules:
+Most important functionality! Import GitLab using your modules from any source:
 
 ```bash
+# Import with local modules
 gitlab-importer import-with-modules \
   ./modules/gitlab-group \
   ./modules/gitlab-project \
   --output-dir ./terraform
+
+# Import with modules from HTTP URLs
+gitlab-importer import-with-modules \
+  https://example.com/modules/group.zip \
+  https://example.com/modules/project.zip \
+  --output-dir ./terraform
+
+# Import with modules from Git repositories
+gitlab-importer import-with-modules \
+  https://github.com/user/terraform-modules.git \
+  https://github.com/user/terraform-modules.git \
+  --group-subdir modules/gitlab-group \
+  --project-subdir modules/gitlab-project \
+  --output-dir ./terraform
+
+# Import with modules from different sources (mixed)
+gitlab-importer import-with-modules \
+  https://github.com/org/modules.git \
+  ./local/project-module \
+  --group-subdir terraform/modules/group \
+  --output-dir ./terraform
 ```
 
+**Module Source Examples:**
+- Local: `./modules/gitlab-group`
+- HTTP ZIP: `https://releases.example.com/terraform-modules-v1.0.0.zip`
+- HTTP TAR.GZ: `https://releases.example.com/terraform-modules-v1.0.0.tar.gz`
+- GitHub: `https://github.com/user/terraform-gitlab-modules.git`
+- GitLab: `https://gitlab.com/user/terraform-gitlab-modules.git`
+- Git SSH: `git@github.com:user/terraform-gitlab-modules.git`
+
 This command:
-1. Analyzes Terraform modules (variables, outputs, resources)
-2. Imports GitLab structure
-3. Maps GitLab data to module definitions
-4. Generates `.tf` files compatible with modules
-5. Creates import script `import.sh`
+1. Downloads modules from specified sources (if needed)
+2. Analyzes Terraform modules (variables, outputs, resources)
+3. Imports GitLab structure
+4. Maps GitLab data to module definitions
+5. Generates `.tf` files compatible with modules
+6. Creates import script `import.sh`
+
+**Note**: Downloaded modules are automatically cleaned up after use. Git requires `git` command to be available in PATH.
 
 ## 🔧 Advanced Usage
 
@@ -494,9 +547,19 @@ root_group = import_uc.execute(
     max_depth=3
 )
 
-# Parse modules
+# Parse modules from different sources
+# Local path
 group_module = terraform_client.parse_module(Path("./modules/gitlab-group"))
 project_module = terraform_client.parse_module(Path("./modules/gitlab-project"))
+
+# HTTP URL
+group_module = terraform_client.parse_module("https://example.com/modules/group.zip")
+
+# Git repository
+project_module = terraform_client.parse_module(
+    "https://github.com/user/modules.git",
+    subdirectory="terraform/modules/project"
+)
 
 # Generate
 result = generate_uc.execute(

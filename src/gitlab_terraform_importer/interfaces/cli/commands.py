@@ -210,11 +210,25 @@ def import_structure(ctx, output_dir: str | None, dry_run: bool) -> None:
 
 
 @cli.command()
-@click.argument("group_module_path", type=click.Path(exists=True))
-@click.argument("project_module_path", type=click.Path(exists=True))
+@click.argument("group_module_source")
+@click.argument("project_module_source")
+@click.option("--group-subdir", help="Subdirectory within group module source")
+@click.option("--project-subdir", help="Subdirectory within project module source")
 @click.pass_context
-def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> None:
-    """Analyze Terraform modules for groups and projects."""
+def analyze_modules(
+    ctx,
+    group_module_source: str,
+    project_module_source: str,
+    group_subdir: str | None,
+    project_subdir: str | None,
+) -> None:
+    """Analyze Terraform modules for groups and projects.
+
+    MODULE_SOURCE can be:
+    - Local path: /path/to/module
+    - HTTP URL: https://example.com/module.zip
+    - Git repository: https://github.com/user/repo.git
+    """
     try:
         config = load_config()
         terraform_client = TerraformClient(terraform_binary=config.terraform_binary)
@@ -226,8 +240,10 @@ def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> No
             task = progress.add_task("Analyzing modules...", total=None)
 
             analysis = analyze_use_case.execute(
-                group_module_path=Path(group_module_path),
-                project_module_path=Path(project_module_path),
+                group_module_source=group_module_source,
+                project_module_source=project_module_source,
+                group_subdir=group_subdir,
+                project_subdir=project_subdir,
             )
 
             progress.update(task, completed=True)
@@ -238,7 +254,7 @@ def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> No
         console.print("[cyan]Group Module:[/cyan]")
         gm = analysis["group_module"]
         console.print(f"  Name:              {gm['name']}")
-        console.print(f"  Path:              {gm['path']}")
+        console.print(f"  Source:            {gm['source']}")
         console.print(f"  Variables:         {len(gm['variables'])}")
         console.print(f"  Required:          {len(gm['required_variables'])}")
         console.print(f"  Resources:         {gm['resource_count']}")
@@ -248,7 +264,7 @@ def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> No
         console.print("\n[cyan]Project Module:[/cyan]")
         pm = analysis["project_module"]
         console.print(f"  Name:              {pm['name']}")
-        console.print(f"  Path:              {pm['path']}")
+        console.print(f"  Source:            {pm['source']}")
         console.print(f"  Variables:         {len(pm['variables'])}")
         console.print(f"  Required:          {len(pm['required_variables'])}")
         console.print(f"  Resources:         {pm['resource_count']}")
@@ -266,14 +282,27 @@ def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> No
 
 
 @cli.command()
-@click.argument("group_module_path", type=click.Path(exists=True))
-@click.argument("project_module_path", type=click.Path(exists=True))
+@click.argument("group_module_source")
+@click.argument("project_module_source")
 @click.option("--output-dir", type=click.Path(), help="Override output directory")
+@click.option("--group-subdir", help="Subdirectory within group module source")
+@click.option("--project-subdir", help="Subdirectory within project module source")
 @click.pass_context
 def import_with_modules(
-    ctx, group_module_path: str, project_module_path: str, output_dir: str | None
+    ctx,
+    group_module_source: str,
+    project_module_source: str,
+    output_dir: str | None,
+    group_subdir: str | None,
+    project_subdir: str | None,
 ) -> None:
-    """Import GitLab structure using custom Terraform modules."""
+    """Import GitLab structure using custom Terraform modules.
+
+    MODULE_SOURCE can be:
+    - Local path: /path/to/module
+    - HTTP URL: https://example.com/module.zip
+    - Git repository: https://github.com/user/repo.git
+    """
     try:
         config = load_config()
 
@@ -295,8 +324,10 @@ def import_with_modules(
             # Analyze modules
             task1 = progress.add_task("Analyzing Terraform modules...", total=None)
             group_module, project_module = analyze_use_case.get_modules(
-                group_module_path=Path(group_module_path),
-                project_module_path=Path(project_module_path),
+                group_module_source=group_module_source,
+                project_module_source=project_module_source,
+                group_subdir=group_subdir,
+                project_subdir=project_subdir,
             )
             progress.update(task1, completed=True)
 

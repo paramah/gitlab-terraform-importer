@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from ..entities import (
     Group,
@@ -18,11 +18,12 @@ class TerraformRepository(ABC):
     """Abstract repository for Terraform operations."""
 
     @abstractmethod
-    def parse_module(self, module_path: Path) -> TerraformModule:
-        """Parse a Terraform module from filesystem.
+    def parse_module(self, module_source: str | Path, subdirectory: Optional[str] = None) -> TerraformModule:
+        """Parse a Terraform module from filesystem, HTTP URL, or Git repository.
 
         Args:
-            module_path: Path to the module directory
+            module_source: Path to module directory, HTTP URL to archive, or Git repository URL
+            subdirectory: Optional subdirectory within the module source
 
         Returns:
             Parsed TerraformModule
@@ -30,6 +31,8 @@ class TerraformRepository(ABC):
         Raises:
             FileNotFoundError: If module not found
             ParseError: If module cannot be parsed
+            ValueError: If module source is invalid
+            RuntimeError: If download or parsing fails
         """
         pass
 
