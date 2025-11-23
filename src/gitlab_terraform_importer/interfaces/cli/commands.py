@@ -78,6 +78,7 @@ def validate_config(ctx) -> None:
         console.print(f"  Include Archived:  {config.include_archived}")
 
         console.print(f"  Terraform Binary:  {config.terraform_binary}")
+        console.print(f"  Output Format:     {config.output_format}")
 
     except Exception as e:
         console.print(f"[red]✗[/red] Configuration error: {e}")
@@ -144,7 +145,10 @@ def import_structure(ctx, output_dir: str | None, dry_run: bool) -> None:
 
         # Create clients
         gitlab_client = GitLabClient(config)
-        terraform_client = TerraformClient(terraform_binary=config.terraform_binary)
+        terraform_client = TerraformClient(
+            terraform_binary=config.terraform_binary,
+            output_format=config.output_format
+        )
 
         # Create use cases
         import_use_case = ImportGitLabStructureUseCase(gitlab_client)
@@ -217,7 +221,10 @@ def analyze_modules(ctx, group_module_path: str, project_module_path: str) -> No
     """Analyze Terraform modules for groups and projects."""
     try:
         config = load_config()
-        terraform_client = TerraformClient(terraform_binary=config.terraform_binary)
+        terraform_client = TerraformClient(
+            terraform_binary=config.terraform_binary,
+            output_format=config.output_format
+        )
         analyze_use_case = AnalyzeTerraformModulesUseCase(terraform_client)
 
         with Progress(
@@ -282,7 +289,10 @@ def import_with_modules(
 
         # Create clients
         gitlab_client = GitLabClient(config)
-        terraform_client = TerraformClient(terraform_binary=config.terraform_binary)
+        terraform_client = TerraformClient(
+            terraform_binary=config.terraform_binary,
+            output_format=config.output_format
+        )
 
         # Create use cases
         import_use_case = ImportGitLabStructureUseCase(gitlab_client)

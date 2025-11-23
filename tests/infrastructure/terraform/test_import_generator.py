@@ -1,5 +1,6 @@
 """Tests for ImportGenerator."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -19,6 +20,11 @@ class TestImportGenerator:
     def generator(self) -> ImportGenerator:
         """Create ImportGenerator instance."""
         return ImportGenerator()
+
+    @pytest.fixture
+    def generator_json(self) -> ImportGenerator:
+        """Create ImportGenerator instance with JSON output format."""
+        return ImportGenerator(output_format="json")
 
     def test_generate_import_commands(
         self,
@@ -236,3 +242,150 @@ class TestImportGenerator:
         assert len(result) == 0
         # File should still be created
         assert output_file.exists()
+
+    # JSON Format Tests
+
+    def test_generate_resource_configs_groups_json(
+        self,
+        generator_json: ImportGenerator,
+        sample_group: Group,
+        temp_dir: Path,
+    ):
+        """Test generate_resource_configs for groups in JSON format."""
+        # Execute
+        result = generator_json.generate_resource_configs(
+            groups=[sample_group],
+            projects=[],
+            output_dir=temp_dir,
+        )
+
+        # Verify
+        assert len(result) > 0
+        groups_tf_json = temp_dir / "groups.tf.json"
+        assert groups_tf_json.exists()
+
+        # Verify it's valid JSON
+        content = groups_tf_json.read_text()
+        data = json.loads(content)
+        assert "resource" in data
+        assert "gitlab_group" in data["resource"]
+
+    def test_generate_resource_configs_projects_json(
+        self,
+        generator_json: ImportGenerator,
+        sample_project: Project,
+        temp_dir: Path,
+    ):
+        """Test generate_resource_configs for projects in JSON format."""
+        # Execute
+        result = generator_json.generate_resource_configs(
+            groups=[],
+            projects=[sample_project],
+            output_dir=temp_dir,
+        )
+
+        # Verify
+        assert len(result) > 0
+        projects_tf_json = temp_dir / "projects.tf.json"
+        assert projects_tf_json.exists()
+
+        # Verify it's valid JSON
+        content = projects_tf_json.read_text()
+        data = json.loads(content)
+        assert "resource" in data
+        assert "gitlab_project" in data["resource"]
+
+    def test_generate_resource_configs_both_json(
+        self,
+        generator_json: ImportGenerator,
+        sample_group: Group,
+        sample_project: Project,
+        temp_dir: Path,
+    ):
+        """Test generate_resource_configs for both groups and projects in JSON format."""
+        # Execute
+        result = generator_json.generate_resource_configs(
+            groups=[sample_group],
+            projects=[sample_project],
+            output_dir=temp_dir,
+        )
+
+        # Verify - expects 3 files: provider.tf.json, groups.tf.json, projects.tf.json
+        assert len(result) == 3
+        assert (temp_dir / "provider.tf.json").exists()
+        assert (temp_dir / "groups.tf.json").exists()
+        assert (temp_dir / "projects.tf.json").exists()
+
+        # Verify provider.tf.json is valid JSON
+        provider_content = (temp_dir / "provider.tf.json").read_text()
+        provider_data = json.loads(provider_content)
+        assert "terraform" in provider_data
+        assert "provider" in provider_data
+
+    def test_json_format_validation(
+        self,
+        generator_json: ImportGenerator,
+        sample_group: Group,
+        temp_dir: Path,
+    ):
+        """Test that JSON output contains valid Terraform JSON structure."""
+        # Execute
+        generator_json.generate_resource_configs(
+            groups=[sample_group],
+            projects=[],
+            output_dir=temp_dir,
+        )
+
+        # Read and parse JSON
+        groups_file = temp_dir / "groups.tf.json"
+        data = json.loads(groups_file.read_text())
+
+        # Verify structure
+        assert "resource" in data
+        assert "gitlab_group" in data["resource"]
+
+        # Get first group resource
+        resource_name = list(data["resource"]["gitlab_group"].keys())[0]
+        resource = data["resource"]["gitlab_group"][resource_name]
+
+        # Verify required fields
+        assert "name" in resource
+        assert "path" in resource
+        assert "visibility_level" in resource
+
+    def test_invalid_output_format(self):
+        """Test that invalid output format raises ValueError."""
+        with pytest.raises(ValueError, match="output_format must be 'hcl' or 'json'"):
+            ImportGenerator(output_format="xml")
+
+    def test_json_format_escaping(
+        self,
+        generator_json: ImportGenerator,
+        temp_dir: Path,
+    ):
+        """Test that JSON format properly handles special characters."""
+        # Create group with special characters in description
+        group = Group(
+            id=123,
+            name="Test Group",
+            path="test-group",
+            full_path="org/test-group",
+            visibility="private",
+            description='Description with "quotes" and \n newlines',
+        )
+
+        # Execute
+        generator_json.generate_resource_configs(
+            groups=[group],
+            projects=[],
+            output_dir=temp_dir,
+        )
+
+        # Read and verify JSON is valid
+        groups_file = temp_dir / "groups.tf.json"
+        data = json.loads(groups_file.read_text())
+
+        # Verify description is properly stored
+        resource_name = list(data["resource"]["gitlab_group"].keys())[0]
+        resource = data["resource"]["gitlab_group"][resource_name]
+        assert "description" in resource
